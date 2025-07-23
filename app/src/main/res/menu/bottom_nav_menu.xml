@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/readFragment" android:title="Read" android:icon="@drawable/ic_read" />
+    <item android:id="@+id/favoritesFragment" android:title="Favorites" android:icon="@drawable/ic_favorite" />
+    <item android:id="@+id/toReadFragment" android:title="To Read" android:icon="@drawable/ic_to_read" />
+    <item android:id="@+id/backupFragment" android:title="Backup" android:icon="@drawable/ic_backup" />
+    <item android:id="@+id/statsFragment" android:title="Stats" android:icon="@drawable/ic_stats" />
+</menu>

@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.bookdiarymobile"
-    compileSdk = 34 // Рекомендую 34 как текущий стабильный стандарт
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.bookdiarymobile"
@@ -58,9 +58,8 @@ dependencies {
     // === НАШИ НОВЫЕ ЗАВИСИМОСТИ ===
 
     // Navigation Component
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
-    implementation("androidx.fragment:fragment-ktx:1.7.1")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.5")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.5")
 
     // Lifecycle (ViewModel и LiveData/Flow)
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")

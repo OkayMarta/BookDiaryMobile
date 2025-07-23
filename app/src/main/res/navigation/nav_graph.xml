@@ -12,22 +12,22 @@
         tools:layout="@layout/fragment_read" />
     <fragment
         android:id="@+id/favoritesFragment"
-        android:name="com.example.bookjournal.ui.FavoritesFragment"
+        android:name="com.example.bookdiarymobile.ui.FavoritesFragment"
         android:label="Favorites"
         tools:layout="@layout/fragment_favorites" />
     <fragment
         android:id="@+id/toReadFragment"
-        android:name="com.example.bookjournal.ui.ToReadFragment"
+        android:name="com.example.bookdiarymobile.ui.ToReadFragment"
         android:label="To Read"
         tools:layout="@layout/fragment_to_read" />
     <fragment
         android:id="@+id/backupFragment"
-        android:name="com.example.bookjournal.ui.BackupFragment"
+        android:name="com.example.bookdiarymobile.ui.BackupFragment"
         android:label="Backup"
         tools:layout="@layout/fragment_backup" />
     <fragment
         android:id="@+id/statsFragment"
-        android:name="com.example.bookjournal.ui.StatsFragment"
+        android:name="com.example.bookdiarymobile.ui.StatsFragment"
         android:label="Stats"
         tools:layout="@layout/fragment_stats" />
 </navigation>

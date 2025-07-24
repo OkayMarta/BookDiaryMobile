@@ -5,6 +5,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.core.os.bundleOf
 import com.example.bookdiarymobile.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -25,15 +26,23 @@ class MainActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.fab_add)
 
         fab.setOnClickListener {
-            // Перевіряємо, на якому екрані ми знаходимось
-            when (navController.currentDestination?.id) {
+            val currentDestinationId = navController.currentDestination?.id
+            // Створюємо bundle для передачі аргументів
+            val args = bundleOf(
+                // Ключ "book_status" має співпадати з тим, що ми вказали в nav_graph.xml
+                "book_status" to if (currentDestinationId == R.id.readFragment) {
+                    "READ" // Якщо ми на екрані "Read", передаємо "READ"
+                } else {
+                    "TO_READ" // В іншому випадку (на екрані "To Read"), передаємо "TO_READ"
+                }
+            )
+
+            when (currentDestinationId) {
                 R.id.readFragment -> {
-                    // Якщо на екрані "Read", виконуємо дію для переходу з нього
-                    navController.navigate(R.id.action_readFragment_to_addEditBookFragment)
+                    navController.navigate(R.id.action_readFragment_to_addEditBookFragment, args)
                 }
                 R.id.toReadFragment -> {
-                    // Якщо на екрані "To Read", виконуємо дію для переходу з нього
-                    navController.navigate(R.id.action_toReadFragment_to_addEditBookFragment)
+                    navController.navigate(R.id.action_toReadFragment_to_addEditBookFragment, args)
                 }
             }
         }

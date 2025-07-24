@@ -50,6 +50,11 @@
         android:id="@+id/addEditBookFragment"
         android:name="com.example.bookdiarymobile.ui.AddEditBookFragment"
         android:label="Add Book"
-        tools:layout="@layout/fragment_add_edit_book" />
+        tools:layout="@layout/fragment_add_edit_book" >
+        <!-- Оголошуємо аргумент, який буде приймати цей екран -->
+        <argument
+            android:name="book_status"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

@@ -14,7 +14,7 @@ class AddEditBookViewModel(private val repository: BookRepository) : ViewModel()
         title: String,
         author: String,
         description: String,
-        // Пізніше ми додамо сюди більше параметрів
+        status: BookStatus
     ) {
         // Запускаємо корутину в життєвому циклі ViewModel
         viewModelScope.launch {
@@ -26,12 +26,11 @@ class AddEditBookViewModel(private val repository: BookRepository) : ViewModel()
                 description = description,
                 genre = "", // Поки що жанр порожній
                 coverImagePath = null,
-                // TODO: Потрібно визначити, з якого екрану ми прийшли,
-                // щоб встановити правильний статус (READ або TO_READ)
-                status = BookStatus.READ, // Тимчасово ставимо READ
+                status = status,
                 dateAdded = System.currentTimeMillis(), // Поточний час
-                dateRead = System.currentTimeMillis(), // Тимчасово ставимо поточний час
-                rating = 4, // Тимчасово ставимо 4
+                // Дата прочитання і рейтинг встановлюються тільки для статусу READ
+                dateRead = if (status == BookStatus.READ) System.currentTimeMillis() else null,
+                rating = if (status == BookStatus.READ) 4 else null, // Тимчасово
                 isFavorite = false
             )
 

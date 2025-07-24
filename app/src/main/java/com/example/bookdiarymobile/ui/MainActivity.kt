@@ -15,33 +15,43 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // --- КРОК 1: НАЛАШТУВАННЯ НАВІГАЦІЇ ---
-
         val bottomNavView = findViewById<BottomNavigationView>(R.id.bottom_nav_view)
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        // Зв'язуємо нижнє меню з NavController
         bottomNavView.setupWithNavController(navController)
 
-
-        // --- КРОК 2: ЛОГІКА ВИДИМОСТІ ДЛЯ FAB ---
-
-        // Знаходимо нашу плаваючу кнопку дії (FAB) по її ID
         val fab = findViewById<FloatingActionButton>(R.id.fab_add)
 
-        // Додаємо слухача, який буде реагувати на кожну зміну екрана
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            // Перевіряємо ID екрана, на який ми перейшли
-            when (destination.id) {
-                // Якщо це екран "Read" або "To Read"
-                R.id.readFragment, R.id.toReadFragment -> {
-                    fab.visibility = View.VISIBLE // Показати кнопку
+        fab.setOnClickListener {
+            // Перевіряємо, на якому екрані ми знаходимось
+            when (navController.currentDestination?.id) {
+                R.id.readFragment -> {
+                    // Якщо на екрані "Read", виконуємо дію для переходу з нього
+                    navController.navigate(R.id.action_readFragment_to_addEditBookFragment)
                 }
-                // Для всіх інших екранів
+                R.id.toReadFragment -> {
+                    // Якщо на екрані "To Read", виконуємо дію для переходу з нього
+                    navController.navigate(R.id.action_toReadFragment_to_addEditBookFragment)
+                }
+            }
+        }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                // Додаємо наш новий екран до списку, де треба ховати FAB та нижнє меню
+                R.id.addEditBookFragment -> {
+                    fab.visibility = View.GONE
+                    bottomNavView.visibility = View.GONE
+                }
+                R.id.readFragment, R.id.toReadFragment -> {
+                    fab.visibility = View.VISIBLE
+                    bottomNavView.visibility = View.VISIBLE
+                }
                 else -> {
-                    fab.visibility = View.GONE // Сховати кнопку
+                    fab.visibility = View.GONE
+                    bottomNavView.visibility = View.VISIBLE
                 }
             }
         }

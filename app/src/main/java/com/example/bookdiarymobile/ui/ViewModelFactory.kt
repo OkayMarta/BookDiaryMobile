@@ -10,6 +10,12 @@ class ViewModelFactory(private val repository: BookRepository) : ViewModelProvid
             @Suppress("UNCHECKED_CAST")
             return ReadViewModel(repository) as T
         }
+
+        if (modelClass.isAssignableFrom(AddEditBookViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return AddEditBookViewModel(repository) as T
+        }
+
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

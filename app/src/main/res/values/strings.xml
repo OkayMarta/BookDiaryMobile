@@ -3,4 +3,6 @@
     <string name="add_book">Add Book</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="book_cover_description">Book cover</string>
+    <string name="read_on_date">Read on: %1$s</string>
 </resources>

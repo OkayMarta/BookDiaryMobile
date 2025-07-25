@@ -38,7 +38,8 @@ class AddEditBookViewModel(
     fun saveBook(
         title: String,
         author: String,
-        description: String
+        description: String,
+        coverPath: String?
     ) {
         viewModelScope.launch {
             if (bookId == -1) {
@@ -47,25 +48,23 @@ class AddEditBookViewModel(
                     title = title,
                     author = author,
                     description = description,
+                    coverImagePath = coverPath,
                     status = bookStatusForNew ?: BookStatus.TO_READ, // Якщо статус не передали, то за замовчуванням це TO_READ
                     dateAdded = System.currentTimeMillis(),
                     dateRead = if (bookStatusForNew == BookStatus.READ) System.currentTimeMillis() else null,
                     rating = if (bookStatusForNew == BookStatus.READ) 3 else null, // тимчасове значення
                     genre = "",
-                    coverImagePath = null,
                     isFavorite = false
                 )
                 repository.addBook(newBook)
             } else {
-                // --- РЕЖИМ РЕДАГУВАННЯ ---
-                // Беремо поточну версію книги з нашого стану
+                /// РЕЖИМ РЕДАГУВАННЯ
                 val existingBook = uiState.value ?: return@launch
-                // Створюємо копію, оновлюючи тільки потрібні поля
                 val updatedBook = existingBook.copy(
                     title = title,
                     author = author,
-                    description = description
-                    // Пізніше сюди можна буде додати оновлення рейтингу, дати і т.д.
+                    description = description,
+                    coverImagePath = coverPath // <-- ВИКОРИСТОВУЄМО
                 )
                 repository.updateBook(updatedBook)
             }

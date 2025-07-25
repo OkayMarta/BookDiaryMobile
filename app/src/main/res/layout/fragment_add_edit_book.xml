@@ -16,16 +16,40 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+            <!-- Блок для обкладинки -->
+            <ImageView
+                android:id="@+id/image_view_add_cover"
+                android:layout_width="100dp"
+                android:layout_height="150dp"
+                android:background="#E0E0E0"
+                android:scaleType="centerCrop"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@tools:sample/backgrounds/scenic"
+                android:contentDescription="@string/book_cover_description"/>
+
+            <Button
+                android:id="@+id/button_add_cover"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/choose_cover"
+                app:layout_constraintBottom_toBottomOf="@id/image_view_add_cover"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover" />
+
             <!-- Поле для назви книги -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/text_input_layout_title"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:hint="@string/hint_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toBottomOf="@id/image_view_add_cover">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_text_title"

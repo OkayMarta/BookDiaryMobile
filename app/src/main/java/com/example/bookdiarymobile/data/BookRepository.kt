@@ -27,6 +27,9 @@ class BookRepository(private val bookDao: BookDao) {
         bookDao.deleteBook(book)
     }
 
+
+    suspend fun getAllBooksForBackup(): List<Book> = bookDao.getAllBooksForBackup()
+
     // Функції для статистики
     fun getTotalBooksRead(): Flow<Int> = bookDao.getTotalBooksRead()
 

@@ -9,8 +9,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.Book
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,7 +47,6 @@ class BookAdapter(
         fun bind(book: Book) {
             // Зберігаємо поточну книгу, щоб можна було використати її ID при кліку
             currentBook = book
-
             titleTextView.text = book.title
             authorTextView.text = book.author
 
@@ -64,7 +65,16 @@ class BookAdapter(
                 ratingBar.visibility = View.GONE
             }
 
-            // Тут пізніше буде код для завантаження обкладинки
+            // --- КОД ДЛЯ ОБКЛАДИНКИ ---
+            if (book.coverImagePath != null) {
+                Glide.with(itemView.context)
+                    .load(File(book.coverImagePath))
+                    .placeholder(R.color.black) // Тимчасова заглушка
+                    .into(coverImageView)
+            } else {
+                // Якщо обкладинки немає, очищуємо ImageView
+                coverImageView.setImageResource(R.color.black) // або інший placeholder
+            }
         }
     }
 

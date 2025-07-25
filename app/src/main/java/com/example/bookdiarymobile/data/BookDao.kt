@@ -49,4 +49,10 @@ interface BookDao {
     // Отримуємо кількість книг, прочитаних після певної дати (в Unix Timestamp)
     @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :startDate")
     fun getBooksReadCountSince(startDate: Long): Flow<Int>
+
+    // === Запити для Бекапу ===
+
+    // Отримуємо абсолютно всі книги для бекапу
+    @Query("SELECT * FROM books_table")
+    suspend fun getAllBooksForBackup(): List<Book>
 }

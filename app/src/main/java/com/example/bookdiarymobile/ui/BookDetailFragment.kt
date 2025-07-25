@@ -17,11 +17,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
+import com.bumptech.glide.Glide
 import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.Book
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -118,6 +120,17 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
             ratingBar.visibility = View.GONE
         }
 
-        // TODO: Додати логіку для завантаження обкладинки
+        // --- КОД ДЛЯ ОБКЛАДИНКИ ---
+        val coverImageView = view?.findViewById<ImageView>(R.id.detail_image_cover)
+        if (book.coverImagePath != null) {
+            coverImageView?.let {
+                Glide.with(this)
+                    .load(File(book.coverImagePath))
+                    .placeholder(R.color.black)
+                    .into(it)
+            }
+        } else {
+            coverImageView?.setImageResource(R.color.black)
+        }
     }
 }

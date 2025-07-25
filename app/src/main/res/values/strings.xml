@@ -18,4 +18,7 @@
     <string name="stats_total_books">Total books read: %d</string>
     <string name="stats_books_this_year">Books read this year: %d</string>
     <string name="stats_books_this_month">Books read this month: %d</string>
+    <string name="export_data">Export Data</string>
+    <string name="import_data">Import Data</string>
+    <string name="choose_cover">Choose Cover</string>
 </resources>

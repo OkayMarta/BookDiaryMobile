@@ -38,4 +38,15 @@ interface BookDao {
     // Отримуємо всі вибрані книги
     @Query("SELECT * FROM books_table WHERE isFavorite = 1") // 1 означає true
     fun getFavoriteBooks(): Flow<List<Book>>
+
+
+    // === Запити для статистики ===
+
+    // Отримуємо загальну кількість прочитаних книг
+    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ'")
+    fun getTotalBooksRead(): Flow<Int>
+
+    // Отримуємо кількість книг, прочитаних після певної дати (в Unix Timestamp)
+    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :startDate")
+    fun getBooksReadCountSince(startDate: Long): Flow<Int>
 }

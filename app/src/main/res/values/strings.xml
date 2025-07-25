@@ -15,4 +15,7 @@
     <string name="dialog_delete_message">Are you sure you want to delete this book? This action cannot be undone.</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_delete">Delete</string>
+    <string name="stats_total_books">Total books read: %d</string>
+    <string name="stats_books_this_year">Books read this year: %d</string>
+    <string name="stats_books_this_month">Books read this month: %d</string>
 </resources>

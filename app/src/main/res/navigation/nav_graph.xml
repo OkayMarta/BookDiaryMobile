@@ -10,10 +10,13 @@
         android:name="com.example.bookdiarymobile.ui.ReadFragment"
         android:label="Read"
         tools:layout="@layout/fragment_read" >
-        <!-- Дія для переходу з Read на екран додавання -->
         <action
             android:id="@+id/action_readFragment_to_addEditBookFragment"
             app:destination="@id/addEditBookFragment" />
+        <!-- Дія для переходу з Read на детальний екран -->
+        <action
+            android:id="@+id/action_readFragment_to_bookDetailFragment"
+            app:destination="@id/bookDetailFragment" />
     </fragment>
 
     <fragment
@@ -27,34 +30,46 @@
         android:name="com.example.bookdiarymobile.ui.ToReadFragment"
         android:label="To Read"
         tools:layout="@layout/fragment_to_read" >
-        <!-- Дія для переходу з To Read на екран додавання -->
         <action
             android:id="@+id/action_toReadFragment_to_addEditBookFragment"
             app:destination="@id/addEditBookFragment" />
+        <!-- Дія для переходу з To Read на детальний екран -->
+        <action
+            android:id="@+id/action_toReadFragment_to_bookDetailFragment"
+            app:destination="@id/bookDetailFragment" />
     </fragment>
 
+    <!-- ... фрагменти backup, stats, addEditBook ... -->
     <fragment
         android:id="@+id/backupFragment"
         android:name="com.example.bookdiarymobile.ui.BackupFragment"
         android:label="Backup"
         tools:layout="@layout/fragment_backup" />
-
     <fragment
         android:id="@+id/statsFragment"
         android:name="com.example.bookdiarymobile.ui.StatsFragment"
         android:label="Stats"
         tools:layout="@layout/fragment_stats" />
-
-    <!-- Визначення нашого нового екрану -->
     <fragment
         android:id="@+id/addEditBookFragment"
         android:name="com.example.bookdiarymobile.ui.AddEditBookFragment"
         android:label="Add Book"
         tools:layout="@layout/fragment_add_edit_book" >
-        <!-- Оголошуємо аргумент, який буде приймати цей екран -->
         <argument
             android:name="book_status"
             app:argType="string" />
+    </fragment>
+
+    <!-- Визначення нашого нового детального екрану -->
+    <fragment
+        android:id="@+id/bookDetailFragment"
+        android:name="com.example.bookdiarymobile.ui.BookDetailFragment"
+        android:label="Book Details"
+        tools:layout="@layout/fragment_book_detail">
+        <!-- Оголошуємо аргумент, який він буде приймати - ID книги -->
+        <argument
+            android:name="book_id"
+            app:argType="integer" />
     </fragment>
 
 </navigation>

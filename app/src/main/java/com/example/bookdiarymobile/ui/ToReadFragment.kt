@@ -7,6 +7,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
@@ -14,7 +15,6 @@ import kotlinx.coroutines.launch
 
 class ToReadFragment : Fragment(R.layout.fragment_to_read) {
 
-    // Створюємо ToReadViewModel за допомогою нашої фабрики
     private val viewModel: ToReadViewModel by viewModels {
         ViewModelFactory((activity?.application as BookApplication).repository)
     }
@@ -22,17 +22,23 @@ class ToReadFragment : Fragment(R.layout.fragment_to_read) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Знаходимо RecyclerView
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view_to_read)
-        // Створюємо екземпляр нашого адаптера (ми можемо перевикористовувати BookAdapter!)
-        val adapter = BookAdapter()
+
+        // Створюємо адаптер, передаючи йому обробник кліку
+        val adapter = BookAdapter { clickedBook ->
+            // Створюємо дію для переходу, використовуючи згенерований клас ToReadFragmentDirections
+            val action = ToReadFragmentDirections.actionToReadFragmentToBookDetailFragment(
+                bookId = clickedBook.id
+            )
+            // Виконуємо перехід
+            findNavController().navigate(action)
+        }
+
         recyclerView.adapter = adapter
 
-        // Запускаємо спостереження за даними з ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.toReadBooks.collect { books ->
-                    // Передаємо список книг в адаптер
                     adapter.submitList(books)
                 }
             }

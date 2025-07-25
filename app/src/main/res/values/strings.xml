@@ -9,4 +9,6 @@
     <string name="hint_author">Author</string>
     <string name="hint_description_notes">Description / Notes</string>
     <string name="save_book">Save book</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
 </resources>

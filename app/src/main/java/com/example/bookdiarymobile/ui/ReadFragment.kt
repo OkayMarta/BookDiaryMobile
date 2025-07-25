@@ -7,6 +7,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
@@ -14,7 +15,6 @@ import kotlinx.coroutines.launch
 
 class ReadFragment : Fragment(R.layout.fragment_read) {
 
-    // Створюємо ViewModel за допомогою нашої фабрики
     private val viewModel: ReadViewModel by viewModels {
         ViewModelFactory((activity?.application as BookApplication).repository)
     }
@@ -22,18 +22,24 @@ class ReadFragment : Fragment(R.layout.fragment_read) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Знаходимо RecyclerView
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view_read)
-        // Створюємо екземпляр нашого адаптера
-        val adapter = BookAdapter()
-        // Призначаємо адаптер для RecyclerView
+
+        // 1. Створюємо адаптер і передаємо йому функцію для обробки кліку
+        val adapter = BookAdapter { clickedBook ->
+            // 2. При кліку створюємо "дію" для переходу, передаючи ID книги
+            // Клас ReadFragmentDirections генерується автоматично на основі nav_graph.xml
+            val action = ReadFragmentDirections.actionReadFragmentToBookDetailFragment(
+                bookId = clickedBook.id
+            )
+            // 3. Виконуємо навігацію
+            findNavController().navigate(action)
+        }
+
         recyclerView.adapter = adapter
 
-        // Запускаємо спостереження за даними з ViewModel
+        // Код для спостереження за даними залишається без змін
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Коли ViewModel надасть новий список книг,
-                // ми передаємо його в адаптер
                 viewModel.readBooks.collect { books ->
                     adapter.submitList(books)
                 }

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BookDao {
 
-    // === Базові операції ===
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addBook(book: Book)
 
@@ -21,46 +20,27 @@ interface BookDao {
     @Delete
     suspend fun deleteBook(book: Book)
 
-    // === Запити на отримання даних ===
-
-    // Отримуємо одну книгу за її ID
-    @Query("SELECT * FROM books_table WHERE id = :bookId")
+    @Query("SELECT * FROM books WHERE id = :bookId")
     fun getBookById(bookId: Int): Flow<Book>
 
-    // Отримуємо всі прочитані книги, відсортовані за датою (нові згори)
-    @Query("SELECT * FROM books_table WHERE status = 'READ' ORDER BY dateRead DESC")
+    @Query("SELECT * FROM books WHERE status = 'READ' ORDER BY date_read DESC")
     fun getAllReadBooks(): Flow<List<Book>>
 
-    // Отримуємо всі книги, які потрібно прочитати, відсортовані за датою додавання
-    @Query("SELECT * FROM books_table WHERE status = 'TO_READ' ORDER BY dateAdded DESC")
+    @Query("SELECT * FROM books WHERE status = 'TO_READ' ORDER BY date_added DESC")
     fun getAllToReadBooks(): Flow<List<Book>>
 
-    // Отримуємо всі вибрані книги
-    @Query("SELECT * FROM books_table WHERE isFavorite = 1") // 1 означає true
+    @Query("SELECT * FROM books WHERE is_favorite = 1")
     fun getFavoriteBooks(): Flow<List<Book>>
 
-
-    // === Запити для статистики ===
-
-    // Отримуємо загальну кількість прочитаних книг
-    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ'")
+    @Query("SELECT COUNT(*) FROM books WHERE status = 'READ'")
     fun getTotalBooksRead(): Flow<Int>
 
-    // Отримуємо кількість книг, прочитаних після певної дати (в Unix Timestamp)
-    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :startDate")
-    fun getBooksReadCountSince(startDate: Long): Flow<Int>
-
-    // Отримуємо кількість книг, прочитаних між двома датами (в Unix Timestamp)
-    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :startDate AND dateRead < :endDate")
+    @Query("SELECT COUNT(*) FROM books WHERE status = 'READ' AND date_read >= :startDate AND date_read < :endDate")
     fun getBooksReadCountBetween(startDate: Long, endDate: Long): Flow<Int>
 
-    // Отримуємо кількість книг, прочитаних протягом цілого року
-    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :yearStart AND dateRead < :yearEnd")
+    @Query("SELECT COUNT(*) FROM books WHERE status = 'READ' AND date_read >= :yearStart AND date_read < :yearEnd")
     fun getBooksReadCountForYear(yearStart: Long, yearEnd: Long): Flow<Int>
 
-    // === Запити для Бекапу ===
-
-    // Отримуємо абсолютно всі книги для бекапу
-    @Query("SELECT * FROM books_table")
+    @Query("SELECT * FROM books")
     suspend fun getAllBooksForBackup(): List<Book>
 }

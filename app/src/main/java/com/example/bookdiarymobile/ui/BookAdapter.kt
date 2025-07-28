@@ -25,11 +25,10 @@ class BookAdapter(
     class BookViewHolder(itemView: View, private val onBookClicked: (Book) -> Unit) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.text_view_title)
         private val authorTextView: TextView = itemView.findViewById(R.id.text_view_author)
-        private val dateReadTextView: TextView = itemView.findViewById(R.id.text_view_date_read)
+        private val dateTextView: TextView = itemView.findViewById(R.id.text_view_date_read)
         private val ratingBar: RatingBar = itemView.findViewById(R.id.rating_bar_book)
         private val coverImageView: ImageView = itemView.findViewById(R.id.image_view_cover)
         private val favoriteIcon: ImageView = itemView.findViewById(R.id.icon_favorite_indicator)
-
         private var currentBook: Book? = null
 
         init {
@@ -45,42 +44,42 @@ class BookAdapter(
             titleTextView.text = book.title
             authorTextView.text = book.author
 
-            // === Показуємо іконку тільки для прочитаних та вибраних книг ===
-            // Згідно зі специфікацією, isFavorite може бути true тільки для статусу READ.
-            // Ця перевірка гарантує, що сердечко не з'явиться на книгах зі списку "To Read".
+            // Логіка для іконки "вибране" залишається без змін
             if (book.isFavorite && book.status == BookStatus.READ) {
                 favoriteIcon.visibility = View.VISIBLE
             } else {
                 favoriteIcon.visibility = View.GONE
             }
 
-            // Логіка для дати та рейтингу (включаючи вашу пропозицію для дати додавання)
+            // === ОНОВЛЕНА ЛОГІКА ДЛЯ ВІДОБРАЖЕННЯ ДАТИ ===
             if (book.status == BookStatus.READ) {
-                // Якщо книга прочитана, показуємо дату прочитання та рейтинг
+                // Якщо книга ПРОЧИТАНА, показуємо дату прочитання та рейтинг
                 book.dateRead?.let {
                     val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
-                    dateReadTextView.text = itemView.context.getString(R.string.read_on_date, formattedDate)
-                    dateReadTextView.visibility = View.VISIBLE
+                    dateTextView.text = itemView.context.getString(R.string.read_on_date, formattedDate)
+                    dateTextView.visibility = View.VISIBLE
                 } ?: run {
-                    dateReadTextView.visibility = View.GONE
+                    dateTextView.visibility = View.GONE // Ховаємо, якщо дати прочитання чомусь немає
                 }
 
                 book.rating?.let {
                     ratingBar.rating = it.toFloat()
                     ratingBar.visibility = View.VISIBLE
                 } ?: run {
-                    ratingBar.visibility = View.GONE
+                    ratingBar.visibility = View.GONE // Ховаємо, якщо рейтингу немає
                 }
+
             } else { // Для статусу TO_READ
-                // Якщо книга "До прочитання", ховаємо рейтинг і показуємо дату додавання
+                // Якщо книга "ДО ПРОЧИТАННЯ", ховаємо рейтинг і показуємо дату ДОДАВАННЯ
                 ratingBar.visibility = View.GONE
+
                 val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateAdded))
-                // Можна створити новий рядок "Added: %1$s" у strings.xml для кращого вигляду
-                dateReadTextView.text = "Added: $formattedDate" // Тимчасове рішення
-                dateReadTextView.visibility = View.VISIBLE
+                // Використовуємо новий рядок з ресурсів для правильного форматування
+                dateTextView.text = itemView.context.getString(R.string.added_on_date, formattedDate)
+                dateTextView.visibility = View.VISIBLE
             }
 
-            // Код для обкладинки
+            // Код для обкладинки залишається без змін
             if (book.coverImagePath != null) {
                 Glide.with(itemView.context)
                     .load(File(book.coverImagePath))

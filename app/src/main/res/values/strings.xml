@@ -30,4 +30,5 @@
     <string name="title_update_read_book">Update Read Book</string>
     <string name="hint_read_date">Read Date</string>
     <string name="label_rating">Your Rating</string>
+    <string name="added_on_date">Added on: %1$s</string>
 </resources>

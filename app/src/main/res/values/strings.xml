@@ -21,4 +21,7 @@
     <string name="export_data">Export Data</string>
     <string name="import_data">Import Data</string>
     <string name="choose_cover">Choose Cover</string>
+    <string name="import_warning_title">Warning</string>
+    <string name="import_warning_message">This will replace all current data in the app. All existing books will be deleted. This action cannot be undone. Do you want to continue?</string>
+    <string name="import_action_confirm">Continue</string>
 </resources>

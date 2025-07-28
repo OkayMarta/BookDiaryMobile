@@ -1,10 +1,13 @@
 package com.example.bookdiarymobile.ui
 
+import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RatingBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -25,23 +28,15 @@ import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
-/**
- * Фрагмент, що відповідає за екран додавання нової книги або редагування існуючої.
- * Працює у двох режимах: створення та редагування.
- */
 class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
 
-    /**
-     * Отримує аргументи, передані через Navigation Component (bookId, bookStatus, title).
-     */
     private val navArgs: AddEditBookFragmentArgs by navArgs()
-
-    /**
-     * Ініціалізує ViewModel за допомогою кастомної фабрики, передаючи їй репозиторій
-     * та необхідні аргументи з navArgs для визначення режиму роботи.
-     */
     private val viewModel: AddEditBookViewModel by viewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -56,21 +51,11 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
     }
 
-    /**
-     * Зберігає URI щойно вибраного зображення з галереї.
-     * Якщо null, значить нове зображення не вибирали.
-     */
     private var selectedImageUri: Uri? = null
-
-    /**
-     * Зберігає шлях до поточної обкладинки книги (для режиму редагування).
-     */
     private var currentCoverPath: String? = null
+    // Зберігає вибрану дату у форматі timestamp (Long)
+    private var selectedDateInMillis: Long? = null
 
-    /**
-     * ActivityResultLauncher для запуску системної галереї для вибору зображення.
-     * Після вибору зображення, його URI зберігається у selectedImageUri та відображається на екрані.
-     */
     private val imagePickerLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
@@ -83,7 +68,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Ініціалізація всіх UI-елементів на екрані.
+        // Ініціалізація UI-елементів
         val titleEditText = view.findViewById<TextInputEditText>(R.id.edit_text_title)
         val authorEditText = view.findViewById<TextInputEditText>(R.id.edit_text_author)
         val descriptionEditText = view.findViewById<TextInputEditText>(R.id.edit_text_description)
@@ -91,24 +76,56 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         val coverImageView = view.findViewById<ImageView>(R.id.image_view_add_cover)
         val addCoverButton = view.findViewById<Button>(R.id.button_add_cover)
 
-        // Встановлення слухача на кнопку вибору обкладинки.
+        // === НОВІ UI-ЕЛЕМЕНТИ ===
+        val readDetailsLayout = view.findViewById<LinearLayout>(R.id.read_details_layout)
+        val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
+        val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
+
         addCoverButton.setOnClickListener {
-            imagePickerLauncher.launch("image/*") // Запуск галереї для вибору файлів типу "image".
+            imagePickerLauncher.launch("image/*")
         }
 
-        // Спостереження за станом книги з ViewModel для заповнення полів у режимі редагування.
+        // === ОБРОБНИК НАТИСКАННЯ НА ПОЛЕ ДАТИ ===
+        dateEditText.setOnClickListener {
+            showDatePickerDialog(dateEditText)
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { book ->
-                    if (book != null) {
-                        currentCoverPath = book.coverImagePath
-                        // Заповнення полів даними, якщо вони ще не були змінені користувачем.
-                        if (titleEditText.text.toString() != book.title) titleEditText.setText(book.title)
-                        if (authorEditText.text.toString() != book.author) authorEditText.setText(book.author)
-                        if (descriptionEditText.text.toString() != book.description) descriptionEditText.setText(book.description)
+                    // Визначаємо, чи маємо справу з новою книгою чи редагуємо існуючу
+                    val currentBook = book ?: // Якщо book == null, створюємо "порожню" книгу
+                    // Це потрібно, щоб визначити видимість полів для нових READ книг.
+                    com.example.bookdiarymobile.data.Book(
+                        id = -1, title = "", author = "", genre = "", description = "",
+                        coverImagePath = null, status = navArgs.bookStatus?.let { BookStatus.valueOf(it) } ?: BookStatus.TO_READ,
+                        dateAdded = 0L, dateRead = null, rating = null
+                    )
 
-                        // Завантаження існуючої обкладинки, якщо вона є і нову ще не вибрали.
-                        book.coverImagePath?.let { path ->
+                    // === ЛОГІКА ВИДИМОСТІ ПОЛІВ ДАТИ ТА РЕЙТИНГУ ===
+                    if (currentBook.status == BookStatus.READ) {
+                        readDetailsLayout.visibility = View.VISIBLE
+                    } else {
+                        readDetailsLayout.visibility = View.GONE
+                    }
+
+                    // Заповнюємо поля, якщо це режим редагування
+                    book?.let {
+                        currentCoverPath = it.coverImagePath
+                        if (titleEditText.text.toString() != it.title) titleEditText.setText(it.title)
+                        if (authorEditText.text.toString() != it.author) authorEditText.setText(it.author)
+                        if (descriptionEditText.text.toString() != it.description) descriptionEditText.setText(it.description)
+
+                        // Заповнюємо дату та рейтинг, якщо вони є
+                        it.dateRead?.let { date ->
+                            selectedDateInMillis = date
+                            dateEditText.setText(formatDate(date))
+                        }
+                        it.rating?.let { rating ->
+                            ratingBar.rating = rating.toFloat()
+                        }
+
+                        it.coverImagePath?.let { path ->
                             if (selectedImageUri == null) {
                                 Glide.with(this@AddEditBookFragment).load(File(path)).into(coverImageView)
                             }
@@ -118,50 +135,75 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             }
         }
 
-        // Встановлення слухача на кнопку збереження.
         saveFab.setOnClickListener {
             val title = titleEditText.text.toString()
             val author = authorEditText.text.toString()
             val description = descriptionEditText.text.toString()
+            val ratingValue = ratingBar.rating.toInt() // Отримуємо значення з RatingBar
 
-            // Перевірка, чи заповнені обов'язкові поля.
             if (title.isBlank() || author.isBlank()) {
                 Toast.makeText(context, "Title and Author cannot be empty", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Визначення шляху до обкладинки: якщо вибрано нове зображення — копіюємо його;
-            // інакше — залишаємо поточний шлях.
             val newCoverPath = selectedImageUri?.let { uri ->
                 copyImageToInternalStorage(uri)
             } ?: currentCoverPath
 
-            // Виклик методу збереження у ViewModel та повернення на попередній екран.
-            viewModel.saveBook(title, author, description, newCoverPath)
+            // Передаємо нові дані у ViewModel
+            viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue)
             findNavController().navigateUp()
         }
     }
 
     /**
-     * Копіює файл зображення з наданого URI у внутрішнє сховище додатку.
-     * Це необхідно, оскільки доступ до URI з галереї може бути втрачено.
+     * Показує системний діалог вибору дати.
      */
+    private fun showDatePickerDialog(dateEditText: TextInputEditText) {
+        val calendar = Calendar.getInstance()
+        // Якщо дата вже була вибрана, встановлюємо її в діалозі
+        selectedDateInMillis?.let {
+            calendar.timeInMillis = it
+        }
+
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                val selectedCalendar = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth)
+                }
+                selectedDateInMillis = selectedCalendar.timeInMillis
+                dateEditText.setText(formatDate(selectedDateInMillis!!))
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+        datePickerDialog.show()
+    }
+
+    /**
+     * Форматує timestamp у рядок "дд.ММ.рррр".
+     */
+    private fun formatDate(millis: Long): String {
+        val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        return formatter.format(Date(millis))
+    }
+
     private fun copyImageToInternalStorage(uri: Uri): String? {
         return try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
             val coversDir = File(requireContext().filesDir, "covers")
-            if (!coversDir.exists()) coversDir.mkdirs() // Створення папки "covers", якщо її немає.
+            if (!coversDir.exists()) coversDir.mkdirs()
 
-            // Генерація унікального імені файлу, щоб уникнути перезапису існуючих обкладинок.
             val fileName = "${UUID.randomUUID()}.jpg"
             val file = File(coversDir, fileName)
 
-            // Копіювання даних із вхідного потоку у вихідний (у новий файл).
             val outputStream = FileOutputStream(file)
             inputStream?.copyTo(outputStream)
             inputStream?.close()
             outputStream.close()
-            file.absolutePath // Повернення повного шляху до створеного файлу.
+            file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()
             null

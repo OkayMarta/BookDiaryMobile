@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.Book
+import com.example.bookdiarymobile.data.BookStatus
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -22,19 +23,16 @@ class BookAdapter(
 ) : ListAdapter<Book, BookAdapter.BookViewHolder>(BookDiffCallback()) {
 
     class BookViewHolder(itemView: View, private val onBookClicked: (Book) -> Unit) : RecyclerView.ViewHolder(itemView) {
-        // Знаходимо всі елементи View, включаючи нову іконку
         private val titleTextView: TextView = itemView.findViewById(R.id.text_view_title)
         private val authorTextView: TextView = itemView.findViewById(R.id.text_view_author)
         private val dateReadTextView: TextView = itemView.findViewById(R.id.text_view_date_read)
         private val ratingBar: RatingBar = itemView.findViewById(R.id.rating_bar_book)
         private val coverImageView: ImageView = itemView.findViewById(R.id.image_view_cover)
-        // === НОВИЙ ЕЛЕМЕНТ: Іконка-індикатор ===
         private val favoriteIcon: ImageView = itemView.findViewById(R.id.icon_favorite_indicator)
 
         private var currentBook: Book? = null
 
         init {
-            // Обробник кліків на всю картку залишається без змін
             itemView.setOnClickListener {
                 currentBook?.let { book ->
                     onBookClicked(book)
@@ -43,36 +41,46 @@ class BookAdapter(
         }
 
         fun bind(book: Book) {
-            // Зберігаємо поточну книгу
             currentBook = book
             titleTextView.text = book.title
             authorTextView.text = book.author
 
-            // === НОВА ЛОГІКА: Показуємо або ховаємо іконку "вибране" ===
-            if (book.isFavorite) {
-                // Якщо книга у вибраному, робимо іконку видимою
+            // === Показуємо іконку тільки для прочитаних та вибраних книг ===
+            // Згідно зі специфікацією, isFavorite може бути true тільки для статусу READ.
+            // Ця перевірка гарантує, що сердечко не з'явиться на книгах зі списку "To Read".
+            if (book.isFavorite && book.status == BookStatus.READ) {
                 favoriteIcon.visibility = View.VISIBLE
             } else {
-                // В іншому випадку - ховаємо її
                 favoriteIcon.visibility = View.GONE
             }
 
-            // Логіка для дати та рейтингу залишається, як ви пропонували раніше
-            // (можна буде реалізувати в наступному кроці)
-            if (book.dateRead != null && book.rating != null) {
-                val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateRead))
-                dateReadTextView.text = itemView.context.getString(R.string.read_on_date, formattedDate)
-                ratingBar.rating = book.rating.toFloat()
+            // Логіка для дати та рейтингу (включаючи вашу пропозицію для дати додавання)
+            if (book.status == BookStatus.READ) {
+                // Якщо книга прочитана, показуємо дату прочитання та рейтинг
+                book.dateRead?.let {
+                    val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
+                    dateReadTextView.text = itemView.context.getString(R.string.read_on_date, formattedDate)
+                    dateReadTextView.visibility = View.VISIBLE
+                } ?: run {
+                    dateReadTextView.visibility = View.GONE
+                }
 
-                dateReadTextView.visibility = View.VISIBLE
-                ratingBar.visibility = View.VISIBLE
-            } else {
-                // Якщо книга "До прочитання", ховаємо ці поля
-                dateReadTextView.visibility = View.GONE
+                book.rating?.let {
+                    ratingBar.rating = it.toFloat()
+                    ratingBar.visibility = View.VISIBLE
+                } ?: run {
+                    ratingBar.visibility = View.GONE
+                }
+            } else { // Для статусу TO_READ
+                // Якщо книга "До прочитання", ховаємо рейтинг і показуємо дату додавання
                 ratingBar.visibility = View.GONE
+                val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateAdded))
+                // Можна створити новий рядок "Added: %1$s" у strings.xml для кращого вигляду
+                dateReadTextView.text = "Added: $formattedDate" // Тимчасове рішення
+                dateReadTextView.visibility = View.VISIBLE
             }
 
-            // Код для обкладинки залишається без змін
+            // Код для обкладинки
             if (book.coverImagePath != null) {
                 Glide.with(itemView.context)
                     .load(File(book.coverImagePath))

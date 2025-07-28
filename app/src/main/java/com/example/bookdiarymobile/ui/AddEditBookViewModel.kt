@@ -48,7 +48,9 @@ class AddEditBookViewModel(
         title: String,
         author: String,
         description: String,
-        newCoverPath: String? // Шлях до нової обкладинки, або null, якщо її не змінювали/немає.
+        newCoverPath: String?, // Шлях до нової обкладинки, або null, якщо її не змінювали/немає.
+        dateRead: Long?,
+        rating: Int?
     ) {
         viewModelScope.launch {
             if (bookId == -1) {
@@ -60,9 +62,9 @@ class AddEditBookViewModel(
                     coverImagePath = newCoverPath,
                     status = bookStatusForNew ?: BookStatus.TO_READ, // Якщо статус не передано, за замовчуванням TO_READ.
                     dateAdded = System.currentTimeMillis(),
-                    // Якщо книга одразу додається як прочитана, встановлюємо дату прочитання.
-                    dateRead = if (bookStatusForNew == BookStatus.READ) System.currentTimeMillis() else null,
-                    rating = if (bookStatusForNew == BookStatus.READ) 3 else null, // Тимчасове значення за замовчуванням.
+                    // Використовуємо передані значення, якщо книга одразу прочитана
+                    dateRead = if (bookStatusForNew == BookStatus.READ) dateRead else null,
+                    rating = if (bookStatusForNew == BookStatus.READ) rating else null,
                     genre = "", // Поле для майбутнього розширення функціоналу.
                     isFavorite = false
                 )
@@ -88,7 +90,9 @@ class AddEditBookViewModel(
                     title = title,
                     author = author,
                     description = description,
-                    coverImagePath = newCoverPath // Записуємо шлях до нової (або старої, якщо не змінювали) обкладинки.
+                    coverImagePath = newCoverPath, // Записуємо шлях до нової (або старої, якщо не змінювали) обкладинки.
+                    dateRead = dateRead,
+                    rating =  rating
                 )
                 repository.updateBook(updatedBook)
             }

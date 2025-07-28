@@ -26,4 +26,8 @@
     <string name="import_action_confirm">Continue</string>
     <string name="toggle_favorite_status">Toggle favorite status</string>
     <string name="favorite_indicator">Favorite indicator</string>
+    <string name="action_move_to_read">Move to Read</string>
+    <string name="title_update_read_book">Update Read Book</string>
+    <string name="hint_read_date">Read Date</string>
+    <string name="label_rating">Your Rating</string>
 </resources>

@@ -31,4 +31,29 @@
     <string name="hint_read_date">Read Date</string>
     <string name="label_rating">Your Rating</string>
     <string name="added_on_date">Added on: %1$s</string>
+    <string name="label_genre">Жанр</string>
+
+    <string-array name="book_genres">
+        <item>Оберіть жанр</item>
+        <item>Фентезі</item>
+        <item>Фантастика</item>
+        <item>Наукова фантастика</item>
+        <item>Детектив</item>
+        <item>Трилер</item>
+        <item>Роман</item>
+        <item>Романтика</item>
+        <item>Жахи</item>
+        <item>Пригоди</item>
+        <item>Історичний</item>
+        <item>Молодіжна література</item>
+        <item>Антиутопія</item>
+        <item>Класика</item>
+        <item>Біографія</item>
+        <item>Психологія</item>
+        <item>Саморозвиток</item>
+        <item>Поезія</item>
+        <item>Дитяча література</item>
+        <item>Інше</item>
+    </string-array>
+
 </resources>

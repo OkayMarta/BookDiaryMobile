@@ -54,6 +54,30 @@
             app:layout_constraintTop_toTopOf="@id/detail_text_title"
             app:layout_constraintBottom_toBottomOf="@id/detail_text_author"
             tools:src="@drawable/ic_favorite_filled"/>
+
+        <TextView
+            android:id="@+id/label_genre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/label_genre"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintStart_toStartOf="@id/detail_text_author"
+            app:layout_constraintTop_toBottomOf="@id/detail_text_author" />
+
+        <TextView
+            android:id="@+id/detail_text_genre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            tools:text="Фентезі"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintStart_toEndOf="@id/label_genre"
+            app:layout_constraintBaseline_toBaselineOf="@id/label_genre" />
+
         <RatingBar
             android:id="@+id/detail_rating_bar"
             style="?android:attr/ratingBarStyleIndicator"
@@ -63,8 +87,8 @@
             android:isIndicator="true"
             android:numStars="5"
             android:stepSize="1"
-            app:layout_constraintStart_toStartOf="@id/detail_text_author"
-            app:layout_constraintTop_toBottomOf="@id/detail_text_author"
+            app:layout_constraintStart_toStartOf="@id/label_genre"
+            app:layout_constraintTop_toBottomOf="@id/label_genre"
             tools:rating="5" />
         <TextView
             android:id="@+id/detail_text_description"
@@ -89,7 +113,7 @@
             android:visibility="gone"
             tools:visibility="visible"
             />
-        
+
         <LinearLayout
             android:id="@+id/layout_buttons"
             android:layout_width="match_parent"

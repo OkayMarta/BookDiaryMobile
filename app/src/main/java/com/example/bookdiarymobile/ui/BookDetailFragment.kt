@@ -44,7 +44,7 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Знаходимо всі елементи, включаючи нову кнопку
+        // Знаходимо всі UI-елементи
         val titleTextView = view.findViewById<TextView>(R.id.detail_text_title)
         val authorTextView = view.findViewById<TextView>(R.id.detail_text_author)
         val descriptionTextView = view.findViewById<TextView>(R.id.detail_text_description)
@@ -54,12 +54,14 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
         val moveToReadButton = view.findViewById<Button>(R.id.button_move_to_read) // Знаходимо кнопку
         val editButton = view.findViewById<Button>(R.id.button_edit)
         val deleteButton = view.findViewById<Button>(R.id.button_delete)
+        val genreLabel = view.findViewById<TextView>(R.id.label_genre)
+        val genreTextView = view.findViewById<TextView>(R.id.detail_text_genre)
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.book.collect { book ->
-                    // Передаємо нову кнопку в функцію оновлення UI
-                    updateUi(book, titleTextView, authorTextView, descriptionTextView, ratingBar, coverImageView, favoriteButton, moveToReadButton)
+                    // Передаємо нові елементи в функцію оновлення UI
+                    updateUi(book, titleTextView, authorTextView, descriptionTextView, ratingBar, coverImageView, favoriteButton, moveToReadButton, genreLabel, genreTextView)
                 }
             }
         }
@@ -114,7 +116,9 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
         ratingBar: RatingBar,
         coverImageView: ImageView,
         favoriteButton: ImageButton,
-        moveToReadButton: Button
+        moveToReadButton: Button,
+        genreLabel: TextView,
+        genreTextView: TextView
     ) {
         titleTextView.text = book.title
         authorTextView.text = book.author
@@ -155,6 +159,17 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
             favoriteButton.setImageResource(R.drawable.ic_favorite_filled)
         } else {
             favoriteButton.setImageResource(R.drawable.ic_favorite_border)
+        }
+
+        if (book.genre.isNotBlank()) {
+            // Якщо жанр вказано, робимо поля видимими та встановлюємо текст
+            genreLabel.visibility = View.VISIBLE
+            genreTextView.visibility = View.VISIBLE
+            genreTextView.text = book.genre
+        } else {
+            // Якщо жанр не вказано, ховаємо поля
+            genreLabel.visibility = View.GONE
+            genreTextView.visibility = View.GONE
         }
     }
 }

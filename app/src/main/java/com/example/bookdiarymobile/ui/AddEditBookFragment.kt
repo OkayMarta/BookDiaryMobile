@@ -4,10 +4,12 @@ import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RatingBar
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -53,9 +55,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
 
     private var selectedImageUri: Uri? = null
     private var currentCoverPath: String? = null
-    // Зберігає вибрану дату у форматі timestamp (Long)
     private var selectedDateInMillis: Long? = null
-
     private val imagePickerLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let {
@@ -80,6 +80,18 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         val readDetailsLayout = view.findViewById<LinearLayout>(R.id.read_details_layout)
         val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
         val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
+
+        // === ІНІЦІАЛІЗАЦІЯ SPINNER ===
+        val genreSpinner = view.findViewById<Spinner>(R.id.spinner_genre)
+        // Створюємо адаптер для спіннера, використовуючи масив з strings.xml
+        ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.book_genres,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            genreSpinner.adapter = adapter
+        }
 
         addCoverButton.setOnClickListener {
             imagePickerLauncher.launch("image/*")
@@ -125,6 +137,12 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                             ratingBar.rating = rating.toFloat()
                         }
 
+                        // === ВСТАНОВЛЕННЯ ПОЧАТКОВОГО ЗНАЧЕННЯ ДЛЯ SPINNER ===
+                        val genres = resources.getStringArray(R.array.book_genres)
+                        val genrePosition = genres.indexOf(it.genre)
+                        // Якщо жанр знайдено, встановлюємо його, інакше - позицію 0 ("Оберіть жанр")
+                        genreSpinner.setSelection(if (genrePosition >= 0) genrePosition else 0)
+
                         it.coverImagePath?.let { path ->
                             if (selectedImageUri == null) {
                                 Glide.with(this@AddEditBookFragment).load(File(path)).into(coverImageView)
@@ -141,6 +159,12 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             val description = descriptionEditText.text.toString()
             val ratingValue = ratingBar.rating.toInt() // Отримуємо значення з RatingBar
 
+            // === ОТРИМАННЯ ЗНАЧЕННЯ ЗІ SPINNER ===
+            val selectedGenre = genreSpinner.selectedItem.toString()
+            val genres = resources.getStringArray(R.array.book_genres)
+            // Якщо вибрано підказку "Оберіть жанр", зберігаємо порожній рядок
+            val genreToSave = if (selectedGenre == genres[0]) "" else selectedGenre
+
             if (title.isBlank() || author.isBlank()) {
                 Toast.makeText(context, "Title and Author cannot be empty", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -151,7 +175,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             } ?: currentCoverPath
 
             // Передаємо нові дані у ViewModel
-            viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue)
+            viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue, genreToSave)
             findNavController().navigateUp()
         }
     }

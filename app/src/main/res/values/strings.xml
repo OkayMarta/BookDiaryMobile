@@ -24,4 +24,6 @@
     <string name="import_warning_title">Warning</string>
     <string name="import_warning_message">This will replace all current data in the app. All existing books will be deleted. This action cannot be undone. Do you want to continue?</string>
     <string name="import_action_confirm">Continue</string>
+    <string name="toggle_favorite_status">Toggle favorite status</string>
+    <string name="favorite_indicator">Favorite indicator</string>
 </resources>

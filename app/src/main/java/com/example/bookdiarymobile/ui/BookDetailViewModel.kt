@@ -36,4 +36,22 @@ class BookDetailViewModel(
             repository.deleteBook(book.value)
         }
     }
+
+    /**
+     * === НОВА ФУНКЦІЯ ===
+     * Змінює статус "вибране" для поточної книги.
+     * Запускається в корутині, щоб не блокувати головний потік.
+     */
+    fun toggleFavoriteStatus() {
+        viewModelScope.launch {
+            // Отримуємо поточний об'єкт книги з StateFlow
+            val currentBook = book.value
+            // Створюємо копію об'єкта, інвертуючи значення isFavorite
+            val updatedBook = currentBook.copy(
+                isFavorite = !currentBook.isFavorite
+            )
+            // Викликаємо метод репозиторію для оновлення книги в базі даних
+            repository.updateBook(updatedBook)
+        }
+    }
 }

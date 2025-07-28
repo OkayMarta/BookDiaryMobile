@@ -14,6 +14,10 @@ class ViewModelFactory(private val repository: BookRepository) : ViewModelProvid
             @Suppress("UNCHECKED_CAST")
             return ToReadViewModel(repository) as T
         }
+        if (modelClass.isAssignableFrom(FavoritesViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return FavoritesViewModel(repository) as T
+        }
         if (modelClass.isAssignableFrom(StatsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return StatsViewModel(repository) as T

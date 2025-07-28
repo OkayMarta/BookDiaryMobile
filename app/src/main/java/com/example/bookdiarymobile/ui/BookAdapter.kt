@@ -17,27 +17,25 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// 1. Додаємо в конструктор функцію-обробник кліку: onBookClicked
 class BookAdapter(
     private val onBookClicked: (Book) -> Unit
 ) : ListAdapter<Book, BookAdapter.BookViewHolder>(BookDiffCallback()) {
 
-    // 2. Клас ViewHolder тепер також приймає цю функцію в конструктор
     class BookViewHolder(itemView: View, private val onBookClicked: (Book) -> Unit) : RecyclerView.ViewHolder(itemView) {
-        // Поля залишаються без змін
+        // Знаходимо всі елементи View, включаючи нову іконку
         private val titleTextView: TextView = itemView.findViewById(R.id.text_view_title)
         private val authorTextView: TextView = itemView.findViewById(R.id.text_view_author)
         private val dateReadTextView: TextView = itemView.findViewById(R.id.text_view_date_read)
         private val ratingBar: RatingBar = itemView.findViewById(R.id.rating_bar_book)
         private val coverImageView: ImageView = itemView.findViewById(R.id.image_view_cover)
+        // === НОВИЙ ЕЛЕМЕНТ: Іконка-індикатор ===
+        private val favoriteIcon: ImageView = itemView.findViewById(R.id.icon_favorite_indicator)
 
-        // Додаємо змінну для зберігання поточної книги
         private var currentBook: Book? = null
 
         init {
-            // 3. Встановлюємо слухача кліків на всю картку
+            // Обробник кліків на всю картку залишається без змін
             itemView.setOnClickListener {
-                // При кліку викликаємо передану функцію onBookClicked
                 currentBook?.let { book ->
                     onBookClicked(book)
                 }
@@ -45,14 +43,23 @@ class BookAdapter(
         }
 
         fun bind(book: Book) {
-            // Зберігаємо поточну книгу, щоб можна було використати її ID при кліку
+            // Зберігаємо поточну книгу
             currentBook = book
             titleTextView.text = book.title
             authorTextView.text = book.author
 
-            // 4. Додаємо логіку видимості для полів дати та рейтингу
+            // === НОВА ЛОГІКА: Показуємо або ховаємо іконку "вибране" ===
+            if (book.isFavorite) {
+                // Якщо книга у вибраному, робимо іконку видимою
+                favoriteIcon.visibility = View.VISIBLE
+            } else {
+                // В іншому випадку - ховаємо її
+                favoriteIcon.visibility = View.GONE
+            }
+
+            // Логіка для дати та рейтингу залишається, як ви пропонували раніше
+            // (можна буде реалізувати в наступному кроці)
             if (book.dateRead != null && book.rating != null) {
-                // Якщо книга прочитана, показуємо дату та рейтинг
                 val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateRead))
                 dateReadTextView.text = itemView.context.getString(R.string.read_on_date, formattedDate)
                 ratingBar.rating = book.rating.toFloat()
@@ -65,15 +72,14 @@ class BookAdapter(
                 ratingBar.visibility = View.GONE
             }
 
-            // --- КОД ДЛЯ ОБКЛАДИНКИ ---
+            // Код для обкладинки залишається без змін
             if (book.coverImagePath != null) {
                 Glide.with(itemView.context)
                     .load(File(book.coverImagePath))
-                    .placeholder(R.color.black) // Тимчасова заглушка
+                    .placeholder(R.color.black)
                     .into(coverImageView)
             } else {
-                // Якщо обкладинки немає, очищуємо ImageView
-                coverImageView.setImageResource(R.color.black) // або інший placeholder
+                coverImageView.setImageResource(R.color.black)
             }
         }
     }
@@ -81,7 +87,6 @@ class BookAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.list_item_book, parent, false)
-        // 5. Передаємо обробник кліку при створенні ViewHolder
         return BookViewHolder(view, onBookClicked)
     }
 
@@ -91,7 +96,6 @@ class BookAdapter(
     }
 }
 
-// Цей клас залишається без змін
 class BookDiffCallback : DiffUtil.ItemCallback<Book>() {
     override fun areItemsTheSame(oldItem: Book, newItem: Book): Boolean {
         return oldItem.id == newItem.id

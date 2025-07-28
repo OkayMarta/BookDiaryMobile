@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- Обкладинка книги (поки що просто сірий квадрат) -->
+        <!-- Обкладинка книги -->
         <ImageView
             android:id="@+id/image_view_cover"
             android:layout_width="80dp"
@@ -26,17 +26,30 @@
             tools:src="@tools:sample/backgrounds/scenic"
             android:contentDescription="@string/book_cover_description" />
 
-        <!-- Назва книги -->
+        <!-- === НОВА ІКОНКА-ІНДИКАТОР "ВИБРАНЕ" === -->
+        <ImageView
+            android:id="@+id/icon_favorite_indicator"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_favorite_filled"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/text_view_title"
+            android:contentDescription="@string/favorite_indicator"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <!-- Назва книги (прив'язку кінця змінено, щоб не залазити під іконку) -->
         <TextView
             android:id="@+id/text_view_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/icon_favorite_indicator"
             app:layout_constraintStart_toEndOf="@id/image_view_cover"
             app:layout_constraintTop_toTopOf="@id/image_view_cover"
             tools:text="The Great Gatsby" />
@@ -48,7 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/text_view_title"
             app:layout_constraintStart_toStartOf="@id/text_view_title"
             app:layout_constraintTop_toBottomOf="@id/text_view_title"
             tools:text="F. Scott Fitzgerald" />

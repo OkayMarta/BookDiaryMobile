@@ -22,7 +22,12 @@
         android:id="@+id/favoritesFragment"
         android:name="com.example.bookdiarymobile.ui.FavoritesFragment"
         android:label="Favorites"
-        tools:layout="@layout/fragment_favorites" />
+        tools:layout="@layout/fragment_favorites" >
+        <!-- Додаємо дію для переходу на екран деталей -->
+        <action
+            android:id="@+id/action_favoritesFragment_to_bookDetailFragment"
+            app:destination="@id/bookDetailFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/toReadFragment"

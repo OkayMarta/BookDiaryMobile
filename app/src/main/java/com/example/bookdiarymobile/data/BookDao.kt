@@ -50,6 +50,14 @@ interface BookDao {
     @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :startDate")
     fun getBooksReadCountSince(startDate: Long): Flow<Int>
 
+    // Отримуємо кількість книг, прочитаних між двома датами (в Unix Timestamp)
+    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :startDate AND dateRead < :endDate")
+    fun getBooksReadCountBetween(startDate: Long, endDate: Long): Flow<Int>
+
+    // Отримуємо кількість книг, прочитаних протягом цілого року
+    @Query("SELECT COUNT(*) FROM books_table WHERE status = 'READ' AND dateRead >= :yearStart AND dateRead < :yearEnd")
+    fun getBooksReadCountForYear(yearStart: Long, yearEnd: Long): Flow<Int>
+
     // === Запити для Бекапу ===
 
     // Отримуємо абсолютно всі книги для бекапу

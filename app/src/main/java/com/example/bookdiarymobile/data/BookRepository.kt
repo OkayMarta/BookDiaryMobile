@@ -82,4 +82,16 @@ class BookRepository(private val bookDao: BookDao) {
      * Надає потік (Flow) з кількістю книг, прочитаних після вказаної дати, для екрану статистики.
      */
     fun getBooksReadCountSince(startDate: Long): Flow<Int> = bookDao.getBooksReadCountSince(startDate)
+
+    /**
+     * Надає потік (Flow) з кількістю книг, прочитаних у заданому проміжку часу.
+     */
+    fun getBooksReadCountBetween(startDate: Long, endDate: Long): Flow<Int> =
+        bookDao.getBooksReadCountBetween(startDate, endDate)
+
+    /**
+     * Надає потік (Flow) з кількістю книг, прочитаних за вказаний рік.
+     */
+    fun getBooksReadCountForYear(yearStart: Long, yearEnd: Long): Flow<Int> =
+        bookDao.getBooksReadCountForYear(yearStart, yearEnd)
 }

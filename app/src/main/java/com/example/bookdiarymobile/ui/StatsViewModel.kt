@@ -3,53 +3,95 @@ package com.example.bookdiarymobile.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookdiarymobile.data.BookRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
 
-// Data-клас для зручного зберігання всієї статистики
+// Data-клас для зберігання обраного періоду
+data class SelectedPeriod(val year: Int, val month: Int)
+
+// Новий, спрощений Data-клас для стану UI
 data class StatsUiState(
     val totalBooks: Int = 0,
-    val booksThisYear: Int = 0,
-    val booksThisMonth: Int = 0
+    val selectedPeriod: SelectedPeriod,
+    val booksInMonth: Int = 0,
+    val booksInYear: Int = 0,
+    val isLoading: Boolean = true
 )
 
 class StatsViewModel(repository: BookRepository) : ViewModel() {
 
-    // Обчислюємо timestamp для початку поточного року
-    private val startOfYear: Long = Calendar.getInstance().apply {
-        set(Calendar.DAY_OF_YEAR, 1)
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-    }.timeInMillis
+    // Потік, що зберігає обраний користувачем період (рік та місяць).
+    // Ініціалізуємо його поточним місяцем та роком.
+    private val _selectedPeriod = MutableStateFlow(
+        SelectedPeriod(
+            year = Calendar.getInstance().get(Calendar.YEAR),
+            month = Calendar.getInstance().get(Calendar.MONTH)
+        )
+    )
 
-    // Обчислюємо timestamp для початку поточного місяця
-    private val startOfMonth: Long = Calendar.getInstance().apply {
-        set(Calendar.DAY_OF_MONTH, 1)
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-    }.timeInMillis
+    // Потік, що динамічно обчислює статистику на основі _selectedPeriod
+    private val periodStats: StateFlow<Pair<Int, Int>> = _selectedPeriod.flatMapLatest { period ->
+        // Обчислюємо часові рамки для місяця
+        val (monthStart, monthEnd) = calculateMonthTimestamps(period.year, period.month)
+        // Обчислюємо часові рамки для року
+        val (yearStart, yearEnd) = calculateYearTimestamps(period.year)
 
-    // Використовуємо combine, щоб об'єднати результати трьох різних Flow в один
+        // Комбінуємо два запити до бази даних
+        combine(
+            repository.getBooksReadCountBetween(monthStart, monthEnd),
+            repository.getBooksReadCountForYear(yearStart, yearEnd)
+        ) { monthCount, yearCount ->
+            Pair(monthCount, yearCount) // Повертаємо пару значень (книг за місяць, книг за рік)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), Pair(0, 0))
+
+    // Фінальний потік стану UI, який комбінує всі дані
     val stats: StateFlow<StatsUiState> = combine(
         repository.getTotalBooksRead(),
-        repository.getBooksReadCountSince(startOfYear),
-        repository.getBooksReadCountSince(startOfMonth)
-    ) { total, year, month ->
-        // Коли будь-який з трьох потоків видає нове значення,
-        // цей блок виконується і створює новий об'єкт StatsUiState
+        periodStats,
+        _selectedPeriod
+    ) { total, periodCounts, period ->
         StatsUiState(
             totalBooks = total,
-            booksThisYear = year,
-            booksThisMonth = month
+            selectedPeriod = period,
+            booksInMonth = periodCounts.first,
+            booksInYear = periodCounts.second,
+            isLoading = false
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
-        initialValue = StatsUiState() // Початкове значення (всі нулі)
+        initialValue = StatsUiState(isLoading = true, selectedPeriod = _selectedPeriod.value)
     )
+
+    /**
+     * Публічний метод для оновлення обраного періоду з фрагмента.
+     */
+    fun updateSelectedPeriod(year: Int, month: Int) {
+        _selectedPeriod.value = SelectedPeriod(year, month)
+    }
+
+    // --- Допоміжні функції для обчислення timestamp ---
+    private fun calculateMonthTimestamps(year: Int, month: Int): Pair<Long, Long> {
+        val startCal = Calendar.getInstance().apply {
+            clear()
+            set(year, month, 1)
+        }
+        val endCal = (startCal.clone() as Calendar).apply { add(Calendar.MONTH, 1) }
+        return Pair(startCal.timeInMillis, endCal.timeInMillis)
+    }
+
+    private fun calculateYearTimestamps(year: Int): Pair<Long, Long> {
+        val startCal = Calendar.getInstance().apply {
+            clear()
+            set(year, 0, 1) // 0 - це січень
+        }
+        val endCal = (startCal.clone() as Calendar).apply { add(Calendar.YEAR, 1) }
+        return Pair(startCal.timeInMillis, endCal.timeInMillis)
+    }
 }

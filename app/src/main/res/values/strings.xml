@@ -1,10 +1,9 @@
 <resources>
     <string name="app_name">BookDiaryMobile</string>
     <string name="add_book">Add Book</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="book_cover_description">Book cover</string>
     <string name="read_on_date">Read on: %1$s</string>
+    <string name="added_on_date">Added on: %1$s</string>
     <string name="hint_title">Title</string>
     <string name="hint_author">Author</string>
     <string name="hint_description_notes">Description / Notes</string>
@@ -15,9 +14,6 @@
     <string name="dialog_delete_message">Are you sure you want to delete this book? This action cannot be undone.</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_delete">Delete</string>
-    <string name="stats_total_books">Total books read: %d</string>
-    <string name="stats_books_this_year">Books read this year: %d</string>
-    <string name="stats_books_this_month">Books read this month: %d</string>
     <string name="export_data">Export Data</string>
     <string name="import_data">Import Data</string>
     <string name="choose_cover">Choose Cover</string>
@@ -30,30 +26,51 @@
     <string name="title_update_read_book">Update Read Book</string>
     <string name="hint_read_date">Read Date</string>
     <string name="label_rating">Your Rating</string>
-    <string name="added_on_date">Added on: %1$s</string>
-    <string name="label_genre">Жанр</string>
+    <string name="label_genre">Genre</string>
+
+    <!-- Нові рядки для екрану статистики -->
+    <string name="stats_select_period_label">Select period</string>
+    <string name="stats_in_month_year">In %1$s %2$d you read:</string> <!-- %1$s = Month, %2$d = Year -->
+    <string name="stats_in_year">In %1$d you read:</string> <!-- %1$d = Year -->
+    <string name="stats_total_read">Total books read:</string>
+    <string name="dialog_select_period_title">Select Period</string>
+    <string name="dialog_ok">OK</string>
 
     <string-array name="book_genres">
-        <item>Оберіть жанр</item>
-        <item>Фентезі</item>
-        <item>Фантастика</item>
-        <item>Наукова фантастика</item>
-        <item>Детектив</item>
-        <item>Трилер</item>
-        <item>Роман</item>
-        <item>Романтика</item>
-        <item>Жахи</item>
-        <item>Пригоди</item>
-        <item>Історичний</item>
-        <item>Молодіжна література</item>
-        <item>Антиутопія</item>
-        <item>Класика</item>
-        <item>Біографія</item>
-        <item>Психологія</item>
-        <item>Саморозвиток</item>
-        <item>Поезія</item>
-        <item>Дитяча література</item>
-        <item>Інше</item>
+        <item>Select genre</item>
+        <item>Fantasy</item>
+        <item>Science fiction</item>
+        <item>Detective</item>
+        <item>Thriller</item>
+        <item>Novel</item>
+        <item>Romance</item>
+        <item>Horror</item>
+        <item>Adventure</item>
+        <item>Historical</item>
+        <item>Young adult</item>
+        <item>Dystopia</item>
+        <item>Classics</item>
+        <item>Biography</item>
+        <item>Psychology</item>
+        <item>Self-help</item>
+        <item>Poetry</item>
+        <item>Children\'s literature</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="months">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
     </string-array>
 
 </resources>

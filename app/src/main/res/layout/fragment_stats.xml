@@ -1,34 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center_horizontal"
-    tools:context=".ui.StatsFragment">
+    android:fillViewport="true">
 
-    <TextView
-        android:id="@+id/stats_text_total"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        tools:text="Total books read: 15" />
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center_horizontal"
+        tools:context=".ui.StatsFragment">
 
-    <TextView
-        android:id="@+id/stats_text_year"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        tools:text="Books read this year: 8" />
+        <!-- Блок вибору періоду -->
+        <LinearLayout
+            android:id="@+id/period_selector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackground">
 
-    <TextView
-        android:id="@+id/stats_text_month"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        tools:text="Books read this month: 2" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stats_select_period_label"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:alpha="0.7"/>
 
-</LinearLayout>
+            <TextView
+                android:id="@+id/text_selected_period"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                tools:text="May 2024" />
+        </LinearLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="16dp" />
+
+        <!-- Статистика за місяць -->
+        <TextView
+            android:id="@+id/label_stats_month"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            tools:text="In May 2024 you read:" />
+
+        <TextView
+            android:id="@+id/text_stats_month"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/circle_background"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceDisplayMedium"
+            android:textStyle="bold"
+            tools:text="5" />
+
+        <!-- Статистика за рік -->
+        <TextView
+            android:id="@+id/label_stats_year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            tools:text="In 2024 you read:" />
+
+        <TextView
+            android:id="@+id/text_stats_year"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/circle_background"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceDisplayMedium"
+            android:textStyle="bold"
+            tools:text="23" />
+
+        <!-- Загальна статистика -->
+        <TextView
+            android:id="@+id/label_stats_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:text="@string/stats_total_read" />
+
+        <TextView
+            android:id="@+id/text_stats_total"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/circle_background"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceDisplayMedium"
+            android:textStyle="bold"
+            tools:text="173" />
+
+    </LinearLayout>
+</ScrollView>

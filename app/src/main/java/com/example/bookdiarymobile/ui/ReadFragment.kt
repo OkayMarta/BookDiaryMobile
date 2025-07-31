@@ -2,6 +2,7 @@ package com.example.bookdiarymobile.ui
 
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -23,6 +24,7 @@ class ReadFragment : Fragment(R.layout.fragment_read) {
         super.onViewCreated(view, savedInstanceState)
 
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view_read)
+        val emptyStateTextView: TextView = view.findViewById(R.id.text_view_empty_state_read)
 
         // 1. Створюємо адаптер і передаємо йому функцію для обробки кліку
         val adapter = BookAdapter { clickedBook ->
@@ -41,6 +43,13 @@ class ReadFragment : Fragment(R.layout.fragment_read) {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.readBooks.collect { books ->
+                    if (books.isEmpty()) {
+                        recyclerView.visibility = View.GONE
+                        emptyStateTextView.visibility = View.VISIBLE
+                    } else {
+                        recyclerView.visibility = View.VISIBLE
+                        emptyStateTextView.visibility = View.GONE
+                    }
                     adapter.submitList(books)
                 }
             }

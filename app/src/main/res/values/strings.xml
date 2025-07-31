@@ -27,14 +27,15 @@
     <string name="hint_read_date">Read Date</string>
     <string name="label_rating">Your Rating</string>
     <string name="label_genre">Genre</string>
-
-    <!-- Нові рядки для екрану статистики -->
     <string name="stats_select_period_label">Select period</string>
-    <string name="stats_in_month_year">In %1$s %2$d you read:</string> <!-- %1$s = Month, %2$d = Year -->
-    <string name="stats_in_year">In %1$d you read:</string> <!-- %1$d = Year -->
+    <string name="stats_in_month_year">In %1$s %2$d you read:</string>
+    <string name="stats_in_year">In %1$d you read:</string>
     <string name="stats_total_read">Total books read:</string>
     <string name="dialog_select_period_title">Select Period</string>
     <string name="dialog_ok">OK</string>
+    <string name="empty_state_read">You haven\'t added any read books yet.\nTap the \'+\' button to start!</string>
+    <string name="empty_state_to_read">Your \'To Read\' list is empty.\nTap the \'+\' button to add a book!</string>
+    <string name="empty_state_favorites">You haven\'t added any books to your favorites yet.</string>
 
     <string-array name="book_genres">
         <item>Select genre</item>

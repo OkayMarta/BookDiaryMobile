@@ -2,6 +2,7 @@ package com.example.bookdiarymobile.ui
 
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -25,6 +26,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
         // Знаходимо RecyclerView у нашому layout-файлі
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view_favorites)
+        val emptyStateTextView: TextView = view.findViewById(R.id.text_view_empty_state_favorites)
 
         // Створюємо екземпляр адаптера. Він універсальний і підходить для всіх списків.
         // В обробник кліку передаємо логіку навігації.
@@ -43,12 +45,15 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
         // Запускаємо корутину для спостереження за змінами даних у ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
-            // Цей блок буде виконуватися, лише коли фрагмент видимий (STARTED)
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Підписуємося на потік 'favoriteBooks' з ViewModel
                 viewModel.favoriteBooks.collect { books ->
-                    // Коли надходить новий список книг, передаємо його в адаптер.
-                    // ListAdapter сам ефективно визначить, що змінилося, і оновить RecyclerView.
+                    if (books.isEmpty()) {
+                        recyclerView.visibility = View.GONE
+                        emptyStateTextView.visibility = View.VISIBLE
+                    } else {
+                        recyclerView.visibility = View.VISIBLE
+                        emptyStateTextView.visibility = View.GONE
+                    }
                     adapter.submitList(books)
                 }
             }

@@ -4,27 +4,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookRepository
+import com.example.bookdiarymobile.data.SortOrder
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 
-/**
- * ViewModel для екрану "Вибране" (Favorites).
- * Відповідає за надання списку вибраних книг для відображення в інтерфейсі.
- */
-class FavoritesViewModel(repository: BookRepository) : ViewModel() {
+class FavoritesViewModel(private val repository: BookRepository) : ViewModel() {
 
-    /**
-     * StateFlow, що містить актуальний список вибраних книг.
-     * Він отримує дані з репозиторію та автоматично оновлюється при будь-яких
-     * змінах у базі даних (наприклад, коли книга додається до вибраного).
-     */
-    val favoriteBooks: StateFlow<List<Book>> = repository.favoriteBooks
-        .stateIn(
-            scope = viewModelScope, // Життєвий цикл ViewModel
-            // Починати збирати дані, лише коли UI (фрагмент) активний
-            started = SharingStarted.WhileSubscribed(5000L),
-            // Початкове значення, доки дані не завантажились - порожній список
-            initialValue = emptyList()
-        )
+    private val _sortOrder = MutableStateFlow(SortOrder.DATE_READ_DESC)
+    val sortOrder: StateFlow<SortOrder> = _sortOrder
+
+    val favoriteBooks: StateFlow<List<Book>> = _sortOrder.flatMapLatest { order ->
+        repository.getSortedFavoriteBooks(order)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = emptyList()
+    )
+
+    fun applySortOrder(newOrder: SortOrder) {
+        _sortOrder.value = newOrder
+    }
 }

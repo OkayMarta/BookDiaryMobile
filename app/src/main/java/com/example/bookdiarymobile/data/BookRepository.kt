@@ -89,4 +89,41 @@ class BookRepository(private val bookDao: BookDao) {
      */
     fun getBooksReadCountForYear(yearStart: Long, yearEnd: Long): Flow<Int> =
         bookDao.getBooksReadCountForYear(yearStart, yearEnd)
+
+
+    fun getSortedBooks(sortOrder: SortOrder): Flow<List<Book>> {
+        return when (sortOrder) {
+            SortOrder.TITLE_ASC -> bookDao.getAllReadBooksSortedByTitleAsc()
+            SortOrder.TITLE_DESC -> bookDao.getAllReadBooksSortedByTitleDesc()
+            SortOrder.DATE_READ_ASC -> bookDao.getAllReadBooksSortedByDateAsc()
+            SortOrder.DATE_READ_DESC -> bookDao.getAllReadBooksSortedByDateDesc()
+            SortOrder.RATING_ASC -> bookDao.getAllReadBooksSortedByRatingAsc()
+            SortOrder.RATING_DESC -> bookDao.getAllReadBooksSortedByRatingDesc()
+            // Наразі ігноруємо сортування для ToRead, ViewModel сама вирішить що викликати
+            else -> bookDao.getAllReadBooks() // Default
+        }
+    }
+
+    fun getSortedToReadBooks(sortOrder: SortOrder): Flow<List<Book>> {
+        return when (sortOrder) {
+            SortOrder.TITLE_ASC -> bookDao.getAllToReadBooksSortedByTitleAsc()
+            SortOrder.TITLE_DESC -> bookDao.getAllToReadBooksSortedByTitleDesc()
+            SortOrder.DATE_ADDED_ASC -> bookDao.getAllToReadBooksSortedByDateAsc()
+            SortOrder.DATE_ADDED_DESC -> bookDao.getAllToReadBooksSortedByDateDesc()
+            else -> bookDao.getAllToReadBooks() // Default
+        }
+    }
+
+    fun getSortedFavoriteBooks(sortOrder: SortOrder): Flow<List<Book>> {
+        return when (sortOrder) {
+            SortOrder.TITLE_ASC -> bookDao.getFavoriteBooksSortedByTitleAsc()
+            SortOrder.TITLE_DESC -> bookDao.getFavoriteBooksSortedByTitleDesc()
+            SortOrder.DATE_READ_ASC -> bookDao.getFavoriteBooksSortedByDateAsc()
+            SortOrder.DATE_READ_DESC -> bookDao.getFavoriteBooksSortedByDateDesc()
+            SortOrder.RATING_ASC -> bookDao.getFavoriteBooksSortedByRatingAsc()
+            SortOrder.RATING_DESC -> bookDao.getFavoriteBooksSortedByRatingDesc()
+            else -> bookDao.getFavoriteBooks() // Default
+        }
+    }
+
 }

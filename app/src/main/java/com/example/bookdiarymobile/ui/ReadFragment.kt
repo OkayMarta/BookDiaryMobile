@@ -1,9 +1,14 @@
 package com.example.bookdiarymobile.ui
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +17,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
+import com.example.bookdiarymobile.data.SortOrder
+import com.example.bookdiarymobile.utils.getSerializableCompat
 import kotlinx.coroutines.launch
 
 class ReadFragment : Fragment(R.layout.fragment_read) {
@@ -39,6 +46,14 @@ class ReadFragment : Fragment(R.layout.fragment_read) {
 
         recyclerView.adapter = adapter
 
+        // Налаштовуємо слухача для результату з екрану сортування
+        setFragmentResultListener("SORT_REQUEST") { _, bundle ->
+            val newSortOrder = bundle.getSerializableCompat<SortOrder>("SORT_ORDER")
+            newSortOrder?.let { viewModel.applySortOrder(it) }
+        }
+
+        setupMenu() // Викликаємо налаштування меню
+
         // Код для спостереження за даними залишається без змін
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -54,5 +69,26 @@ class ReadFragment : Fragment(R.layout.fragment_read) {
                 }
             }
         }
+    }
+
+    private fun setupMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.main_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return if (menuItem.itemId == R.id.action_sort) {
+                    val action = ReadFragmentDirections.actionReadFragmentToSortOptionsFragment(
+                        currentSortOrder = viewModel.sortOrder.value,
+                        sourceScreen = "READ" // Ідентифікатор екрану
+                    )
+                    findNavController().navigate(action)
+                    true
+                } else {
+                    false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 }

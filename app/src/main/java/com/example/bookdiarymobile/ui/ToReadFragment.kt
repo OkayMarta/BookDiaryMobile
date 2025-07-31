@@ -72,18 +72,40 @@ class ToReadFragment : Fragment(R.layout.fragment_to_read) {
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.main_menu, menu)
+
+                val searchItem = menu.findItem(R.id.action_search)
+                val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
+
+                // Відновлюємо текст пошуку, якщо він був
+                val currentQuery = viewModel.searchQuery.value
+                if (currentQuery.isNotEmpty()) {
+                    searchItem.expandActionView()
+                    searchView.setQuery(currentQuery, false)
+                }
+
+                searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+                        return true // Дія не потрібна, бо ми реагуємо на кожну зміну
+                    }
+
+                    override fun onQueryTextChange(newText: String?): Boolean {
+                        viewModel.applySearchQuery(newText.orEmpty())
+                        return true
+                    }
+                })
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return if (menuItem.itemId == R.id.action_sort) {
-                    val action = ToReadFragmentDirections.actionToReadFragmentToSortOptionsFragment(
-                        currentSortOrder = viewModel.sortOrder.value,
-                        sourceScreen = "TO_READ"
-                    )
-                    findNavController().navigate(action)
-                    true
-                } else {
-                    false
+                return when (menuItem.itemId) {
+                    R.id.action_sort -> {
+                        val action = ToReadFragmentDirections.actionToReadFragmentToSortOptionsFragment(
+                            currentSortOrder = viewModel.sortOrder.value,
+                            sourceScreen = "TO_READ"
+                        )
+                        findNavController().navigate(action)
+                        true
+                    }
+                    else -> false
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)

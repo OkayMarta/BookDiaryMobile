@@ -5,7 +5,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -97,4 +99,8 @@ interface BookDao {
     // Ваш існуючий getAllToReadBooks() вже сортує по date_added DESC
     @Query("SELECT * FROM books WHERE status = 'TO_READ' ORDER BY date_added DESC")
     fun getAllToReadBooksSortedByDateDesc(): Flow<List<Book>>
+
+
+    @RawQuery(observedEntities = [Book::class])
+    fun getBooksWithQuery(query: SupportSQLiteQuery): Flow<List<Book>>
 }

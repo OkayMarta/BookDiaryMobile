@@ -1,5 +1,6 @@
 package com.example.bookdiarymobile.data
 
+import androidx.sqlite.db.SimpleSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
@@ -126,4 +127,41 @@ class BookRepository(private val bookDao: BookDao) {
         }
     }
 
+    fun getFilteredAndSortedBooks(
+        screenType: ScreenType,
+        sortOrder: SortOrder,
+        searchQuery: String
+    ): Flow<List<Book>> {
+        val queryBuilder = StringBuilder("SELECT * FROM books WHERE ")
+
+        // 1. Додаємо фільтр за типом екрану
+        when (screenType) {
+            ScreenType.READ -> queryBuilder.append("status = 'READ'")
+            ScreenType.TO_READ -> queryBuilder.append("status = 'TO_READ'")
+            ScreenType.FAVORITES -> queryBuilder.append("is_favorite = 1")
+        }
+
+        // 2. Додаємо фільтр за пошуковим запитом, якщо він не порожній
+        if (searchQuery.isNotEmpty()) {
+            queryBuilder.append(" AND (title LIKE '%' || ? || '%' OR author LIKE '%' || ? || '%')")
+        }
+
+        // 3. Додаємо сортування
+        queryBuilder.append(" ORDER BY ")
+        when (sortOrder) {
+            SortOrder.TITLE_ASC -> queryBuilder.append("title ASC")
+            SortOrder.TITLE_DESC -> queryBuilder.append("title DESC")
+            SortOrder.DATE_READ_ASC -> queryBuilder.append("date_read ASC")
+            SortOrder.DATE_READ_DESC -> queryBuilder.append("date_read DESC")
+            SortOrder.RATING_ASC -> queryBuilder.append("rating ASC")
+            SortOrder.RATING_DESC -> queryBuilder.append("rating DESC")
+            SortOrder.DATE_ADDED_ASC -> queryBuilder.append("date_added ASC")
+            SortOrder.DATE_ADDED_DESC -> queryBuilder.append("date_added DESC")
+        }
+
+        val sqlQuery = queryBuilder.toString()
+        val args = if (searchQuery.isNotEmpty()) arrayOf(searchQuery, searchQuery) else emptyArray()
+
+        return bookDao.getBooksWithQuery(SimpleSQLiteQuery(sqlQuery, args))
+    }
 }

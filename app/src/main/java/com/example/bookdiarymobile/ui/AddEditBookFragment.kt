@@ -157,13 +157,18 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             val title = titleEditText.text.toString()
             val author = authorEditText.text.toString()
             val description = descriptionEditText.text.toString()
-            val ratingValue = ratingBar.rating.toInt() // Отримуємо значення з RatingBar
+            val ratingValue = ratingBar.rating.toInt()
 
-            // === ОТРИМАННЯ ЗНАЧЕННЯ ЗІ SPINNER ===
+            // --- ЛОГІКА ОТРИМАННЯ ТА ВАЛІДАЦІЇ ЖАНРУ ---
+            val genreSpinner = view.findViewById<Spinner>(R.id.spinner_genre) // Отримуємо Spinner
+
+            // Перевіряємо, чи вибрано перший елемент ("Select genre")
+            if (genreSpinner.selectedItemPosition == 0) {
+                Toast.makeText(context, R.string.validation_select_genre, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener // Перериваємо виконання, якщо жанр не вибрано
+            }
+
             val selectedGenre = genreSpinner.selectedItem.toString()
-            val genres = resources.getStringArray(R.array.book_genres)
-            // Якщо вибрано підказку "Оберіть жанр", зберігаємо порожній рядок
-            val genreToSave = if (selectedGenre == genres[0]) "" else selectedGenre
 
             if (title.isBlank() || author.isBlank()) {
                 Toast.makeText(context, "Title and Author cannot be empty", Toast.LENGTH_SHORT).show()
@@ -174,8 +179,8 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                 copyImageToInternalStorage(uri)
             } ?: currentCoverPath
 
-            // Передаємо нові дані у ViewModel
-            viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue, genreToSave)
+            // Передаємо нові дані у ViewModel, тепер `selectedGenre` не буде "Select genre"
+            viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue, selectedGenre)
             findNavController().navigateUp()
         }
     }

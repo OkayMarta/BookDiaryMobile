@@ -32,6 +32,14 @@
     <string name="stats_in_year">In %1$d you read:</string>
     <string name="stats_total_read">Total books read:</string>
     <string name="dialog_select_period_title">Select Period</string>
+    <string name="export_in_progress">Exporting data…</string>
+    <string name="export_success_message">Export successful!</string>
+    <string name="export_failed_message">Export failed. Please check logs for details.</string>
+    <string name="import_in_progress">Importing data…</string>
+    <string name="import_success_title">Import Successful</string>
+    <string name="import_success_message">Your data has been successfully imported. The app will now restart to apply the changes.</string>
+    <string name="import_failed_title">Import Failed</string>
+    <string name="import_failed_message">Data could not be imported. The backup file might be corrupted. The app will now restart.</string>
     <string name="dialog_ok">OK</string>
     <string name="empty_state_read">You haven\'t added any read books yet.\nTap the \'+\' button to start!</string>
     <string name="empty_state_to_read">Your \'To Read\' list is empty.\nTap the \'+\' button to add a book!</string>

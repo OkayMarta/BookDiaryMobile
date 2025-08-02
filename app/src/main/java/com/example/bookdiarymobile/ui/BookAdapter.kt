@@ -23,15 +23,14 @@ class BookAdapter(
 ) : ListAdapter<Book, BookAdapter.BookViewHolder>(BookDiffCallback()) {
 
     class BookViewHolder(itemView: View, private val onBookClicked: (Book) -> Unit) : RecyclerView.ViewHolder(itemView) {
-        // --- 1. Оновлюємо посилання на елементи з нового layout ---
         private val titleTextView: TextView = itemView.findViewById(R.id.text_view_title)
         private val authorTextView: TextView = itemView.findViewById(R.id.text_view_author)
         private val descriptionTextView: TextView = itemView.findViewById(R.id.text_view_description)
-        private val dateTextView: TextView = itemView.findViewById(R.id.text_view_date) // Новий ID
-        private val ratingBar: RatingBar = itemView.findViewById(R.id.rating_bar_book)
-        private val ratingTextView: TextView = itemView.findViewById(R.id.text_view_rating) // Новий елемент
+        private val dateTextView: TextView = itemView.findViewById(R.id.text_view_date)
+        private val ratingStarIcon: ImageView = itemView.findViewById(R.id.icon_rating_star)
+        private val ratingTextView: TextView = itemView.findViewById(R.id.text_view_rating)
         private val coverImageView: ImageView = itemView.findViewById(R.id.image_view_cover)
-        private val favoriteIcon: ImageView = itemView.findViewById(R.id.icon_favorite_crown) // Новий ID
+        private val favoriteIcon: ImageView = itemView.findViewById(R.id.icon_favorite_crown)
 
         private var currentBook: Book? = null
 
@@ -48,7 +47,6 @@ class BookAdapter(
             titleTextView.text = book.title
             authorTextView.text = book.author
 
-            // Показуємо опис, якщо він не порожній
             if (book.description.isNotBlank()) {
                 descriptionTextView.text = book.description
                 descriptionTextView.visibility = View.VISIBLE
@@ -56,11 +54,9 @@ class BookAdapter(
                 descriptionTextView.visibility = View.GONE
             }
 
-            // Показуємо іконку-корону для вибраних книг
             favoriteIcon.visibility = if (book.isFavorite) View.VISIBLE else View.GONE
 
             if (book.status == BookStatus.READ) {
-                // Якщо книга ПРОЧИТАНА, показуємо дату прочитання та рейтинг
                 book.dateRead?.let {
                     dateTextView.text = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
                     dateTextView.visibility = View.VISIBLE
@@ -68,31 +64,39 @@ class BookAdapter(
                     dateTextView.visibility = View.GONE
                 }
 
+                // === ЛОГІКА ДЛЯ ДИНАМІЧНОЇ ІКОНКИ ЗІРКИ ===
                 book.rating?.let { ratingValue ->
-                    // Для нового дизайну показуємо одну зірку і число поруч
-                    ratingBar.rating = 1f // Завжди показуємо одну заповнену зірку
                     ratingTextView.text = ratingValue.toString()
-                    ratingBar.visibility = View.VISIBLE
                     ratingTextView.visibility = View.VISIBLE
+                    ratingStarIcon.visibility = View.VISIBLE
+
+                    // Вибираємо іконку залежно від рейтингу
+                    when (ratingValue) {
+                        5, 4 -> ratingStarIcon.setImageResource(R.drawable.ic_star_filled)
+                        3 -> ratingStarIcon.setImageResource(R.drawable.ic_star_half)
+                        2, 1 -> ratingStarIcon.setImageResource(R.drawable.ic_star_outline)
+                        else -> ratingStarIcon.visibility = View.GONE // Ховаємо, якщо рейтинг 0 або інший
+                    }
                 } ?: run {
-                    ratingBar.visibility = View.GONE
+                    // Ховаємо рейтинг, якщо його немає
+                    ratingStarIcon.visibility = View.GONE
                     ratingTextView.visibility = View.GONE
                 }
             } else { // Для статусу TO_READ
-                // Якщо книга "ДО ПРОЧИТАННЯ", показуємо дату ДОДАВАННЯ і ховаємо рейтинг
-                ratingBar.visibility = View.GONE
+                // Ховаємо рейтинг
+                ratingStarIcon.visibility = View.GONE
                 ratingTextView.visibility = View.GONE
 
+                // Показуємо дату додавання
                 dateTextView.text = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateAdded))
                 dateTextView.visibility = View.VISIBLE
             }
 
-            // --- 2. Виправляємо завантаження обкладинки ---
-            // Створюємо placeholder, якщо його немає, і видаляємо дублювання коду.
+            // Логіка для обкладинки
             if (book.coverImagePath != null) {
                 Glide.with(itemView.context)
                     .load(File(book.coverImagePath))
-                    .placeholder(R.drawable.placeholder_cover) // Використовуємо новий placeholder
+                    .placeholder(R.drawable.placeholder_cover)
                     .into(coverImageView)
             } else {
                 coverImageView.setImageResource(R.drawable.placeholder_cover)

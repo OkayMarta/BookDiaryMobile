@@ -72,58 +72,55 @@
         android:layout_marginTop="12dp"
         android:textColor="@color/text_secondary"
         android:textSize="17sp"
-        app:layout_constraintStart_toStartOf="@id/text_view_description"
-        app:layout_constraintTop_toBottomOf="@id/text_view_description"
+        app:layout_constraintStart_toStartOf="@id/text_view_title"
+        app:layout_constraintBottom_toBottomOf="@id/image_view_cover"
         tools:text="17.07.2025" />
 
-    <!-- Іконка "Вибране" (корона) -->
+    <!-- Іконка зірки -->
     <ImageView
-        android:id="@+id/icon_favorite_crown"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginEnd="8dp"
-        android:src="@drawable/ic_favorite_crown"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/rating_bar_book"
-        app:layout_constraintEnd_toStartOf="@id/rating_bar_book"
-        app:layout_constraintTop_toTopOf="@id/rating_bar_book"
+        android:id="@+id/icon_rating_star"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         app:tint="@color/text_primary"
-        tools:visibility="visible" />
-
-    <!-- Рейтинг (зірочка) -->
-    <RatingBar
-        android:id="@+id/rating_bar_book"
-        style="?android:attr/ratingBarStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:numStars="1"
-        android:isIndicator="true"
-        android:progressTint="@color/text_primary"
-        android:secondaryProgressTint="@color/text_primary"
         app:layout_constraintBottom_toBottomOf="@id/text_view_rating"
         app:layout_constraintEnd_toStartOf="@id/text_view_rating"
-        app:layout_constraintTop_toTopOf="@id/text_view_rating" />
+        app:layout_constraintTop_toTopOf="@id/text_view_rating"
+        tools:src="@drawable/ic_star_filled" />
 
     <TextView
         android:id="@+id/text_view_rating"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="2dp"
         android:textColor="@color/text_primary"
-        android:textSize="20sp"
+        android:textSize="26sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/image_view_cover"
         tools:text="5" />
+
+    <!-- Іконка "Вибране" (корона) -->
+    <ImageView
+        android:id="@+id/icon_favorite_crown"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/ic_favorite_crown"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/image_view_cover"
+        app:layout_constraintStart_toEndOf="@id/text_view_date"
+        app:layout_constraintEnd_toStartOf="@id/icon_rating_star"
+        app:tint="@color/text_primary"
+        tools:visibility="visible" />
 
     <!-- Розділювач -->
     <View
         android:layout_width="0dp"
         android:layout_height="1dp"
-        android:layout_marginTop="16dp"
-        android:background="#222222"
+        android:layout_marginTop="12dp"
+        android:background="@color/divider_color"
         app:layout_constraintTop_toBottomOf="@id/image_view_cover"
-        app:layout_constraintStart_toStartOf="@id/text_view_title"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 

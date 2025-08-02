@@ -4,4 +4,5 @@
     <color name="text_primary">#FCFCFC</color>
     <color name="text_secondary">#F3F3F5</color>
     <color name="icon_tint">#FFFFFF</color>
+    <color name="divider_color">#4DFFFFFF</color>
 </resources>

@@ -100,4 +100,17 @@ class AddEditBookViewModel(
             }
         }
     }
+
+    /**
+     * Перевіряє, чи є поточна книга (нова чи та, що редагується)
+     * книгою зі статусом READ.
+     */
+    fun isCurrentBookRead(): Boolean {
+        // Якщо редагуємо існуючу книгу, перевіряємо її статус
+        if (bookId != -1) {
+            return uiState.value?.status == BookStatus.READ
+        }
+        // Якщо створюємо нову, перевіряємо статус, переданий через navArgs
+        return bookStatusForNew == BookStatus.READ
+    }
 }

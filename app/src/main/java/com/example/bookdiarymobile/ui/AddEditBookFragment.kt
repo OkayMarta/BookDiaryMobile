@@ -172,32 +172,39 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
 
         saveFab.setOnClickListener {
-            val title = titleEditText.text.toString()
-            val author = authorEditText.text.toString()
-            val description = descriptionEditText.text.toString()
+            // --- 1. Отримуємо дані з полів ---
+            val title = titleEditText.text.toString().trim()
+            val author = authorEditText.text.toString().trim()
+            val description = descriptionEditText.text.toString().trim()
             val ratingValue = ratingBar.rating.toInt()
-
-            // --- ЛОГІКА ОТРИМАННЯ ТА ВАЛІДАЦІЇ ЖАНРУ ---
-            val genreSpinner = view.findViewById<Spinner>(R.id.spinner_genre) // Отримуємо Spinner
-
-            // Перевіряємо, чи вибрано перший елемент ("Select genre")
-            if (genreSpinner.selectedItemPosition == 0) {
-                Toast.makeText(context, R.string.validation_select_genre, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener // Перериваємо виконання, якщо жанр не вибрано
-            }
-
             val selectedGenre = genreSpinner.selectedItem.toString()
 
-            if (title.isBlank() || author.isBlank()) {
-                Toast.makeText(context, "Title and Author cannot be empty", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            // --- 2. Викликаємо нову функцію валідації ---
+            if (!validateInputs(title, author, selectedGenre)) {
+                return@setOnClickListener // Зупиняємо, якщо базові поля не заповнені
             }
 
+            // --- 3. Додаткова валідація для прочитаних книг ---
+            // Визначаємо, чи має книга статус READ (або зараз отримає його)
+            val isReadStatus = viewModel.isCurrentBookRead()
+
+            if (isReadStatus) {
+                if (selectedDateInMillis == null) {
+                    Toast.makeText(context, "Please select a read date", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                if (ratingValue == 0) {
+                    Toast.makeText(context, "Please provide a rating (1 to 5 stars)", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+            }
+
+            // --- 4. Якщо все гаразд, зберігаємо книгу ---
             val newCoverPath = selectedImageUri?.let { uri ->
                 copyImageToInternalStorage(uri)
             } ?: currentCoverPath
 
-            // Передаємо нові дані у ViewModel, тепер `selectedGenre` не буде "Select genre"
+            // Передаємо нові дані у ViewModel
             viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue, selectedGenre)
             findNavController().navigateUp()
         }
@@ -293,5 +300,27 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             e.printStackTrace()
             null
         }
+    }
+
+    /**
+     * Нова функція для валідації основних полів вводу.
+     * @return true, якщо валідація пройшла успішно, інакше false.
+     */
+    private fun validateInputs(title: String, author: String, genre: String): Boolean {
+        if (title.isBlank()) {
+            Toast.makeText(context, "Title cannot be empty", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        if (author.isBlank()) {
+            Toast.makeText(context, "Author cannot be empty", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        // Перевіряємо, чи вибрано жанр (позиція 0 - "Select genre")
+        val genreSpinner = view?.findViewById<Spinner>(R.id.spinner_genre)
+        if (genreSpinner?.selectedItemPosition == 0) {
+            Toast.makeText(context, R.string.validation_select_genre, Toast.LENGTH_SHORT).show()
+            return false
+        }
+        return true
     }
 }

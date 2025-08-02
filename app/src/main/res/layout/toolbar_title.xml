@@ -6,5 +6,5 @@
     android:layout_gravity="center"
     android:text="Book Diary"
     android:textColor="@color/text_primary"
-    android:textSize="22sp"
+    android:textSize="32sp"
     android:fontFamily="@font/lobster_regular" />

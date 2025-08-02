@@ -1,8 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/readFragment" android:title="Read" android:icon="@drawable/ic_read" />
-    <item android:id="@+id/favoritesFragment" android:title="Favorites" android:icon="@drawable/ic_favorite" />
-    <item android:id="@+id/toReadFragment" android:title="To Read" android:icon="@drawable/ic_to_read" />
-    <item android:id="@+id/backupFragment" android:title="Backup" android:icon="@drawable/ic_backup" />
-    <item android:id="@+id/statsFragment" android:title="Stats" android:icon="@drawable/ic_stats" />
+    <item
+        android:id="@+id/readFragment"
+        android:title="@string/menu_my_books"
+        android:icon="@drawable/ic_menu_book" />
+    <item
+        android:id="@+id/favoritesFragment"
+        android:title="@string/menu_favorites"
+        android:icon="@drawable/ic_favorite_crown" />
+    <item
+        android:id="@+id/toReadFragment"
+        android:title="@string/menu_to_read"
+        android:icon="@drawable/ic_menu_to_read" />
+    <item
+        android:id="@+id/backupFragment"
+        android:title="@string/menu_backup"
+        android:icon="@drawable/ic_menu_backup" />
+    <item
+        android:id="@+id/statsFragment"
+        android:title="@string/menu_statistics"
+        android:icon="@drawable/ic_menu_stats" />
 </menu>

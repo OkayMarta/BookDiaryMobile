@@ -1,94 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="8dp"
-    android:layout_marginVertical="4dp"
-    app:cardElevation="2dp">
+    android:padding="16dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <!-- Обкладинка книги -->
+    <ImageView
+        android:id="@+id/image_view_cover"
+        android:layout_width="80dp"
+        android:layout_height="120dp"
+        android:background="#333333"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@tools:sample/backgrounds/scenic"
+        android:contentDescription="@string/book_cover_description" />
+
+    <!-- Назва книги -->
+    <TextView
+        android:id="@+id/text_view_title"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:layout_marginStart="16dp"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/image_view_cover"
+        app:layout_constraintTop_toTopOf="@id/image_view_cover"
+        tools:text="Пригоди Гекльберрі Фінна" />
 
-        <!-- Обкладинка книги -->
-        <ImageView
-            android:id="@+id/image_view_cover"
-            android:layout_width="80dp"
-            android:layout_height="110dp"
-            android:background="#E0E0E0"
-            android:scaleType="centerCrop"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:src="@tools:sample/backgrounds/scenic"
-            android:contentDescription="@string/book_cover_description" />
+    <!-- Автор книги -->
+    <TextView
+        android:id="@+id/text_view_author"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintEnd_toEndOf="@id/text_view_title"
+        app:layout_constraintStart_toStartOf="@id/text_view_title"
+        app:layout_constraintTop_toBottomOf="@id/text_view_title"
+        tools:text="Марк Твен" />
 
-        <!-- === НОВА ІКОНКА-ІНДИКАТОР "ВИБРАНЕ" === -->
-        <ImageView
-            android:id="@+id/icon_favorite_indicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_favorite_filled"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/text_view_title"
-            android:contentDescription="@string/favorite_indicator"
-            android:visibility="gone"
-            tools:visibility="visible" />
+    <!-- Опис/Нотатки -->
+    <TextView
+        android:id="@+id/text_view_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="@color/text_secondary"
+        android:visibility="gone"
+        android:maxLines="2"
+        android:ellipsize="end"
+        app:layout_constraintEnd_toEndOf="@id/text_view_author"
+        app:layout_constraintStart_toStartOf="@id/text_view_author"
+        app:layout_constraintTop_toBottomOf="@id/text_view_author"
+        tools:text='"Adventures Of Huckleberry Finn" by Mark Twain'
+        tools:visibility="visible"/>
 
-        <!-- Назва книги (прив'язку кінця змінено, щоб не залазити під іконку) -->
-        <TextView
-            android:id="@+id/text_view_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/icon_favorite_indicator"
-            app:layout_constraintStart_toEndOf="@id/image_view_cover"
-            app:layout_constraintTop_toTopOf="@id/image_view_cover"
-            tools:text="The Great Gatsby" />
+    <!-- Дата прочитання -->
+    <TextView
+        android:id="@+id/text_view_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintStart_toStartOf="@id/text_view_description"
+        app:layout_constraintTop_toBottomOf="@id/text_view_description"
+        tools:text="17.07.2025" />
 
-        <!-- Автор книги -->
-        <TextView
-            android:id="@+id/text_view_author"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintEnd_toEndOf="@id/text_view_title"
-            app:layout_constraintStart_toStartOf="@id/text_view_title"
-            app:layout_constraintTop_toBottomOf="@id/text_view_title"
-            tools:text="F. Scott Fitzgerald" />
+    <!-- Іконка "Вибране" (корона) -->
+    <ImageView
+        android:id="@+id/icon_favorite_crown"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/ic_favorite_crown"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/rating_bar_book"
+        app:layout_constraintEnd_toStartOf="@id/rating_bar_book"
+        app:layout_constraintTop_toTopOf="@id/rating_bar_book"
+        app:tint="@color/star_color"
+        tools:visibility="visible" />
 
-        <!-- Рейтинг (зірочки) -->
-        <RatingBar
-            android:id="@+id/rating_bar_book"
-            style="?android:attr/ratingBarStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:isIndicator="true"
-            android:numStars="5"
-            android:stepSize="1"
-            app:layout_constraintStart_toStartOf="@id/text_view_author"
-            app:layout_constraintTop_toBottomOf="@id/text_view_author"
-            tools:rating="4" />
+    <!-- Рейтинг (зірочка) -->
+    <RatingBar
+        android:id="@+id/rating_bar_book"
+        style="?android:attr/ratingBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:numStars="1"
+        android:isIndicator="true"
+        android:progressTint="@color/star_color"
+        android:secondaryProgressTint="@color/star_color"
+        app:layout_constraintBottom_toBottomOf="@id/text_view_rating"
+        app:layout_constraintEnd_toStartOf="@id/text_view_rating"
+        app:layout_constraintTop_toTopOf="@id/text_view_rating" />
 
-        <!-- Дата прочитання -->
-        <TextView
-            android:id="@+id/text_view_date_read"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            app:layout_constraintBottom_toBottomOf="@id/image_view_cover"
-            app:layout_constraintStart_toStartOf="@id/rating_bar_book"
-            tools:text="Read on: 24.05.2024" />
+    <TextView
+        android:id="@+id/text_view_rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="5" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</com.google.android.material.card.MaterialCardView>
+    <!-- Розділювач -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="#222222"
+        app:layout_constraintTop_toBottomOf="@id/image_view_cover"
+        app:layout_constraintStart_toStartOf="@id/text_view_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

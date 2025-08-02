@@ -45,6 +45,11 @@
     <string name="empty_state_to_read">Your \'To Read\' list is empty.\nTap the \'+\' button to add a book!</string>
     <string name="empty_state_favorites">You haven\'t added any books to your favorites yet.</string>
     <string name="validation_select_genre">Please select a genre</string>
+    <string name="menu_my_books">My Books</string>
+    <string name="menu_favorites">Favorites</string>
+    <string name="menu_to_read">To Read</string>
+    <string name="menu_backup">Backup</string>
+    <string name="menu_statistics">Statistics</string>
 
     <string-array name="book_genres">
         <item>Select genre</item>

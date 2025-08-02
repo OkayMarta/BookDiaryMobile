@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="background_dark">#121212</color> <!-- Стандартний темний фон Material Design -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B3FFFFFF</color> <!-- Білий з прозорістю 70% -->
+    <color name="icon_tint">#FFFFFF</color>
+    <color name="star_color">#FFD700</color> <!-- Золотий колір для зірок -->
 </resources>

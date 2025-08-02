@@ -148,10 +148,12 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
         if (book.coverImagePath != null) {
             Glide.with(this)
                 .load(File(book.coverImagePath))
-                .placeholder(R.color.black)
+                .placeholder(R.drawable.placeholder_cover) // Використовуємо placeholder з drawable
+                .error(R.drawable.placeholder_cover)       // Показуємо placeholder, якщо сталася помилка завантаження
                 .into(coverImageView)
         } else {
-            coverImageView.setImageResource(R.color.black)
+            // Встановлюємо placeholder, якщо шляху до обкладинки немає
+            coverImageView.setImageResource(R.drawable.placeholder_cover)
         }
 
         // Логіка для іконки "вибране" тепер буде викликатись тільки для READ книг

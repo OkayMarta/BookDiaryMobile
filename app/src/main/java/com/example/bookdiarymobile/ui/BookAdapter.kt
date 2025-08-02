@@ -23,12 +23,16 @@ class BookAdapter(
 ) : ListAdapter<Book, BookAdapter.BookViewHolder>(BookDiffCallback()) {
 
     class BookViewHolder(itemView: View, private val onBookClicked: (Book) -> Unit) : RecyclerView.ViewHolder(itemView) {
+        // --- 1. Оновлюємо посилання на елементи з нового layout ---
         private val titleTextView: TextView = itemView.findViewById(R.id.text_view_title)
         private val authorTextView: TextView = itemView.findViewById(R.id.text_view_author)
-        private val dateTextView: TextView = itemView.findViewById(R.id.text_view_date_read)
+        private val descriptionTextView: TextView = itemView.findViewById(R.id.text_view_description)
+        private val dateTextView: TextView = itemView.findViewById(R.id.text_view_date) // Новий ID
         private val ratingBar: RatingBar = itemView.findViewById(R.id.rating_bar_book)
+        private val ratingTextView: TextView = itemView.findViewById(R.id.text_view_rating) // Новий елемент
         private val coverImageView: ImageView = itemView.findViewById(R.id.image_view_cover)
-        private val favoriteIcon: ImageView = itemView.findViewById(R.id.icon_favorite_indicator)
+        private val favoriteIcon: ImageView = itemView.findViewById(R.id.icon_favorite_crown) // Новий ID
+
         private var currentBook: Book? = null
 
         init {
@@ -44,49 +48,54 @@ class BookAdapter(
             titleTextView.text = book.title
             authorTextView.text = book.author
 
-            // Логіка для іконки "вибране" залишається без змін
-            if (book.isFavorite && book.status == BookStatus.READ) {
-                favoriteIcon.visibility = View.VISIBLE
+            // Показуємо опис, якщо він не порожній
+            if (book.description.isNotBlank()) {
+                descriptionTextView.text = book.description
+                descriptionTextView.visibility = View.VISIBLE
             } else {
-                favoriteIcon.visibility = View.GONE
+                descriptionTextView.visibility = View.GONE
             }
 
-            // === ОНОВЛЕНА ЛОГІКА ДЛЯ ВІДОБРАЖЕННЯ ДАТИ ===
+            // Показуємо іконку-корону для вибраних книг
+            favoriteIcon.visibility = if (book.isFavorite) View.VISIBLE else View.GONE
+
             if (book.status == BookStatus.READ) {
                 // Якщо книга ПРОЧИТАНА, показуємо дату прочитання та рейтинг
                 book.dateRead?.let {
-                    val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
-                    dateTextView.text = itemView.context.getString(R.string.read_on_date, formattedDate)
+                    dateTextView.text = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
                     dateTextView.visibility = View.VISIBLE
                 } ?: run {
-                    dateTextView.visibility = View.GONE // Ховаємо, якщо дати прочитання чомусь немає
+                    dateTextView.visibility = View.GONE
                 }
 
-                book.rating?.let {
-                    ratingBar.rating = it.toFloat()
+                book.rating?.let { ratingValue ->
+                    // Для нового дизайну показуємо одну зірку і число поруч
+                    ratingBar.rating = 1f // Завжди показуємо одну заповнену зірку
+                    ratingTextView.text = ratingValue.toString()
                     ratingBar.visibility = View.VISIBLE
+                    ratingTextView.visibility = View.VISIBLE
                 } ?: run {
-                    ratingBar.visibility = View.GONE // Ховаємо, якщо рейтингу немає
+                    ratingBar.visibility = View.GONE
+                    ratingTextView.visibility = View.GONE
                 }
-
             } else { // Для статусу TO_READ
-                // Якщо книга "ДО ПРОЧИТАННЯ", ховаємо рейтинг і показуємо дату ДОДАВАННЯ
+                // Якщо книга "ДО ПРОЧИТАННЯ", показуємо дату ДОДАВАННЯ і ховаємо рейтинг
                 ratingBar.visibility = View.GONE
+                ratingTextView.visibility = View.GONE
 
-                val formattedDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateAdded))
-                // Використовуємо новий рядок з ресурсів для правильного форматування
-                dateTextView.text = itemView.context.getString(R.string.added_on_date, formattedDate)
+                dateTextView.text = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateAdded))
                 dateTextView.visibility = View.VISIBLE
             }
 
-            // Код для обкладинки залишається без змін
+            // --- 2. Виправляємо завантаження обкладинки ---
+            // Створюємо placeholder, якщо його немає, і видаляємо дублювання коду.
             if (book.coverImagePath != null) {
                 Glide.with(itemView.context)
                     .load(File(book.coverImagePath))
-                    .placeholder(R.color.black)
+                    .placeholder(R.drawable.placeholder_cover) // Використовуємо новий placeholder
                     .into(coverImageView)
             } else {
-                coverImageView.setImageResource(R.color.black)
+                coverImageView.setImageResource(R.drawable.placeholder_cover)
             }
         }
     }

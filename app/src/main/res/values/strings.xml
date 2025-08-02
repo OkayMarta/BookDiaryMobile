@@ -25,8 +25,8 @@
     <string name="action_move_to_read">Move to Read</string>
     <string name="title_update_read_book">Update Read Book</string>
     <string name="hint_read_date">Read Date</string>
-    <string name="label_rating">Your Rating</string>
-    <string name="label_genre">Genre</string>
+    <string name="label_rating">Your Rating:</string>
+    <string name="label_genre">Genre:</string>
     <string name="stats_select_period_label">Select period</string>
     <string name="stats_in_month_year">In %1$s %2$d you read:</string>
     <string name="stats_in_year">In %1$d you read:</string>
@@ -50,6 +50,7 @@
     <string name="menu_to_read">To Read</string>
     <string name="menu_backup">Backup</string>
     <string name="menu_statistics">Statistics</string>
+    <string name="mark_as_read">Mark as Read!</string>
 
     <string-array name="book_genres">
         <item>Select genre</item>

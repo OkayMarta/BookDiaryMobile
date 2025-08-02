@@ -18,7 +18,9 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+        <include layout="@layout/toolbar_title" />
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <!-- 2. ЗМІНЕНО ПРИВ'ЯЗКУ: контейнер тепер знаходиться ПІД тулбаром -->
     <androidx.fragment.app.FragmentContainerView

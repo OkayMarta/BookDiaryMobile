@@ -86,7 +86,7 @@
         app:layout_constraintBottom_toBottomOf="@id/rating_bar_book"
         app:layout_constraintEnd_toStartOf="@id/rating_bar_book"
         app:layout_constraintTop_toTopOf="@id/rating_bar_book"
-        app:tint="@color/star_color"
+        app:tint="@color/text_primary"
         tools:visibility="visible" />
 
     <!-- Рейтинг (зірочка) -->
@@ -97,8 +97,8 @@
         android:layout_height="wrap_content"
         android:numStars="1"
         android:isIndicator="true"
-        android:progressTint="@color/star_color"
-        android:secondaryProgressTint="@color/star_color"
+        android:progressTint="@color/text_primary"
+        android:secondaryProgressTint="@color/text_primary"
         app:layout_constraintBottom_toBottomOf="@id/text_view_rating"
         app:layout_constraintEnd_toStartOf="@id/text_view_rating"
         app:layout_constraintTop_toTopOf="@id/text_view_rating" />

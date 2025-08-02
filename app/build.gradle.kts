@@ -71,4 +71,5 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.yalantis:ucrop:2.2.9")
 }

@@ -1,5 +1,6 @@
 package com.example.bookdiarymobile.ui
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
@@ -12,6 +13,7 @@ import android.widget.RatingBar
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -27,6 +29,7 @@ import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.BookStatus
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -56,12 +59,29 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     private var selectedImageUri: Uri? = null
     private var currentCoverPath: String? = null
     private var selectedDateInMillis: Long? = null
-    private val imagePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let {
+
+    // === НОВИЙ ЛАУНЧЕР ДЛЯ РЕЗУЛЬТАТУ ОБРІЗКИ ===
+    private val cropImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val resultUri = result.data?.let { UCrop.getOutput(it) }
+            resultUri?.let {
+                // Отримали URI обрізаного зображення
                 selectedImageUri = it
                 val coverImageView = view?.findViewById<ImageView>(R.id.image_view_add_cover)
                 coverImageView?.let { iv -> Glide.with(this).load(it).into(iv) }
+            }
+        } else if (result.resultCode == UCrop.RESULT_ERROR) {
+            val cropError = result.data?.let { UCrop.getError(it) }
+            Toast.makeText(requireContext(), "Crop error: ${cropError?.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // === СТАРИЙ ЛАУНЧЕР ТЕПЕР ЗАПУСКАЄ UCROP ===
+    private val imagePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { sourceUri ->
+                // Запускаємо uCrop, коли отримали зображення з галереї
+                launchUCrop(sourceUri)
             }
         }
 
@@ -75,8 +95,6 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         val saveFab = view.findViewById<FloatingActionButton>(R.id.fab_save)
         val coverImageView = view.findViewById<ImageView>(R.id.image_view_add_cover)
         val addCoverButton = view.findViewById<Button>(R.id.button_add_cover)
-
-        // === НОВІ UI-ЕЛЕМЕНТИ ===
         val readDetailsLayout = view.findViewById<LinearLayout>(R.id.read_details_layout)
         val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
         val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
@@ -217,6 +235,44 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     private fun formatDate(millis: Long): String {
         val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         return formatter.format(Date(millis))
+    }
+
+    /**
+     * Функція для запуску екрану uCrop
+     */
+    private fun launchUCrop(sourceUri: Uri) {
+        // Створюємо унікальне ім'я для тимчасового файлу обрізаного зображення
+        val destinationFileName = "${UUID.randomUUID()}.jpg"
+        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, destinationFileName))
+
+        // Налаштування uCrop
+        val options = UCrop.Options().apply {
+            // Налаштування кольорів (можна підібрати під вашу тему)
+            // Використовуйте ваші кольори з R.color або залиште за замовчуванням
+            val primaryColor = ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_primary)
+            val primaryDarkColor = ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_primary_dark)
+            val textColor = ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_on_primary)
+
+            setStatusBarColor(primaryDarkColor)
+            setToolbarColor(primaryColor)
+            setActiveControlsWidgetColor(primaryColor)
+            setToolbarWidgetColor(textColor)
+
+            // Показуємо панель з кнопками повороту та масштабування
+            setHideBottomControls(false)
+            // Дозволяємо вільне обертання
+            setFreeStyleCropEnabled(false) // Краще залишити false для книжкових обкладинок
+        }
+
+        // Створюємо інтент для uCrop
+        val uCropIntent = UCrop.of(sourceUri, destinationUri)
+            .withOptions(options)
+            .withAspectRatio(2f, 3f) // Пропонуємо співвідношення сторін для книжкової обкладинки
+            .withMaxResultSize(450, 675) // Встановлюємо максимальний розмір
+            .getIntent(requireContext())
+
+        // Запускаємо лаунчер, який очікує на результат
+        cropImageLauncher.launch(uCropIntent)
     }
 
     private fun copyImageToInternalStorage(uri: Uri): String? {

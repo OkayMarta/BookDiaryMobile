@@ -180,7 +180,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             val selectedGenre = genreSpinner.selectedItem.toString()
 
             // --- 2. Викликаємо нову функцію валідації ---
-            if (!validateInputs(title, author, selectedGenre)) {
+            if (!validateInputs(title, author)) {
                 return@setOnClickListener // Зупиняємо, якщо базові поля не заповнені
             }
 
@@ -306,7 +306,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
      * Нова функція для валідації основних полів вводу.
      * @return true, якщо валідація пройшла успішно, інакше false.
      */
-    private fun validateInputs(title: String, author: String, genre: String): Boolean {
+    private fun validateInputs(title: String, author: String): Boolean {
         if (title.isBlank()) {
             Toast.makeText(context, "Title cannot be empty", Toast.LENGTH_SHORT).show()
             return false

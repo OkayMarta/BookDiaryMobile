@@ -1,0 +1,38 @@
+<resources>
+    <string-array name="book_genres">
+        <item>Select genre</item>
+        <item>Fantasy</item>
+        <item>Science fiction</item>
+        <item>Detective</item>
+        <item>Thriller</item>
+        <item>Novel</item>
+        <item>Romance</item>
+        <item>Horror</item>
+        <item>Adventure</item>
+        <item>Historical</item>
+        <item>Young adult</item>
+        <item>Dystopia</item>
+        <item>Classics</item>
+        <item>Biography</item>
+        <item>Psychology</item>
+        <item>Self-help</item>
+        <item>Poetry</item>
+        <item>Children\'s literature</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="months">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+</resources>

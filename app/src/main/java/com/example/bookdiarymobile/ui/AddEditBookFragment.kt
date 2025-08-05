@@ -299,7 +299,8 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(requireContext(), "Failed to save cover image", Toast.LENGTH_LONG).show()
+            // Показуємо користувачеві повідомлення про помилку
+            Toast.makeText(requireContext(), "Failed to save cover image. Please try again.", Toast.LENGTH_LONG).show()
             null
         }
     }

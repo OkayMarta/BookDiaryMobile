@@ -52,9 +52,10 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                 val bookId = navArgs.bookId
                 val statusString = navArgs.bookStatus
                 val bookStatus = statusString?.let { BookStatus.valueOf(it) }
+                val isTransitioning = navArgs.isTransitioningToRead
 
                 @Suppress("UNCHECKED_CAST")
-                return AddEditBookViewModel(repository, bookId, bookStatus) as T
+                return AddEditBookViewModel(repository, bookId, bookStatus, isTransitioning) as T
             }
         }
     }
@@ -143,7 +144,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                         dateAdded = 0L, dateRead = null, rating = null
                     )
 
-                    if (currentBook.status == BookStatus.READ) {
+                    if (currentBook.status == BookStatus.READ || navArgs.isTransitioningToRead) {
                         readDetailsLayout.visibility = View.VISIBLE
                     } else {
                         readDetailsLayout.visibility = View.GONE
@@ -171,6 +172,12 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                             if (selectedImageUri == null) {
                                 Glide.with(this@AddEditBookFragment).load(path).into(coverImageView)
                             }
+                        }
+
+                        // Встановлюємо поточну дату, якщо це перехід з TO_READ
+                        if (navArgs.isTransitioningToRead && selectedDateInMillis == null) {
+                            selectedDateInMillis = System.currentTimeMillis()
+                            dateEditText.setText(formatDate(selectedDateInMillis!!))
                         }
                     }
                 }

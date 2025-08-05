@@ -142,8 +142,14 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
         deleteButton.setOnClickListener { showDeleteDialog() }
         editButton.setOnClickListener { navigateToEdit() }
         moveToReadButton.setOnClickListener {
-            viewModel.markAsRead()
-            navigateToEdit(getString(R.string.title_update_read_book))
+            // Переходимо на екран редагування, передаючи прапорець
+            val action = BookDetailFragmentDirections
+                .actionBookDetailFragmentToAddEditBookFragment(
+                    bookId = viewModel.book.value.id,
+                    title = getString(R.string.title_update_read_book),
+                    isTransitioningToRead = true // <-- ПЕРЕДАЄМО ПРАПОРЕЦЬ
+                )
+            findNavController().navigate(action)
         }
     }
 

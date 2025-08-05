@@ -17,7 +17,8 @@ import java.io.File
 class AddEditBookViewModel(
     private val repository: BookRepository,
     private val bookId: Int,                 // ID книги для редагування. -1 означає створення нової книги.
-    private val bookStatusForNew: BookStatus? // Статус, який присвоюється новій книзі (READ або TO_READ).
+    private val bookStatusForNew: BookStatus?, // Статус, який присвоюється новій книзі (READ або TO_READ).
+    private val isTransitioningToRead: Boolean
 ) : ViewModel() {
 
     /**
@@ -71,30 +72,28 @@ class AddEditBookViewModel(
                 )
                 repository.addBook(newBook)
             } else {
-                // --- РЕЖИМ РЕДАГУВАННЯ ІСНУЮЧОЇ КНИГИ ---
-                val existingBook = uiState.value ?: return@launch // Отримуємо поточні дані книги.
+                // --- ЛОГІКА РЕДАГУВАННЯ ---
+                val existingBook = uiState.value ?: return@launch
 
-                // Перевіряємо, чи було обрано нову обкладинку.
-                // Якщо так, видаляємо старий файл обкладинки, щоб не засмічувати пам'ять.
                 if (newCoverPath != null && newCoverPath != existingBook.coverImagePath) {
                     existingBook.coverImagePath?.let { oldPath ->
                         try {
                             File(oldPath).delete()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                        } catch (e: Exception) { e.printStackTrace() }
                     }
                 }
 
-                // Створюємо оновлений об'єкт книги з новими даними.
                 val updatedBook = existingBook.copy(
                     title = title,
                     author = author,
                     genre = genre,
                     description = description,
-                    coverImagePath = newCoverPath, // Записуємо шлях до нової (або старої, якщо не змінювали) обкладинки.
+                    coverImagePath = newCoverPath,
+                    // Встановлюємо статус READ, якщо ми в режимі переходу,
+                    // інакше залишаємо старий статус.
+                    status = if (isTransitioningToRead) BookStatus.READ else existingBook.status,
                     dateRead = dateRead,
-                    rating =  rating
+                    rating = rating
                 )
                 repository.updateBook(updatedBook)
             }

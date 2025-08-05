@@ -87,6 +87,12 @@
             android:name="title"
             app:argType="string"
             android:defaultValue="Add Book" />
+
+        <!-- Аргумент для навігації, щоб "повідомити" екран редагування про намір -->
+        <argument
+            android:name="is_transitioning_to_read"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
 

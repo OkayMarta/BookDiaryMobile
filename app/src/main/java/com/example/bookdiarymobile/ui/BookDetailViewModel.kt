@@ -44,22 +44,4 @@ class BookDetailViewModel(
             repository.updateBook(updatedBook)
         }
     }
-
-    /**
-     * Позначає книгу як прочитану.
-     * Змінює статус на READ та встановлює поточну дату як дату прочитання.
-     */
-    fun markAsRead() {
-        viewModelScope.launch {
-            val currentBook = book.value
-            // Перевіряємо, чи книга вже не є прочитаною, щоб уникнути зайвих операцій
-            if (currentBook.status == BookStatus.TO_READ) {
-                val updatedBook = currentBook.copy(
-                    status = BookStatus.READ,
-                    dateRead = System.currentTimeMillis() // Встановлюємо поточний час
-                )
-                repository.updateBook(updatedBook)
-            }
-        }
-    }
 }

@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="textCapSentences"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:paddingTop="12dp"
+                android:paddingTop="6dp"
                 android:paddingBottom="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -49,19 +49,99 @@
                 android:id="@+id/image_view_add_cover"
                 android:layout_width="140dp"
                 android:layout_height="210dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/placeholder_cover_sharp"
                 android:contentDescription="@string/book_cover_description"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/edit_text_title" />
 
+            <!-- Блок інформації праворуч від обкладинки -->
+            <TextView
+                android:id="@+id/label_author"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/hint_author"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorControlNormal"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                app:layout_constraintTop_toTopOf="@id/image_view_add_cover" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_author"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:inputType="textCapSentences"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingTop="6dp"
+                android:paddingBottom="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                app:layout_constraintTop_toBottomOf="@id/label_author"/>
+
+            <TextView
+                android:id="@+id/label_genre_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginStart="12dp"
+                android:text="@string/label_genre"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorControlNormal"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                app:layout_constraintTop_toBottomOf="@id/edit_text_author"/>
+
+            <Spinner
+                android:id="@+id/spinner_genre"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginStart="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                app:layout_constraintTop_toBottomOf="@id/label_genre_edit"/>
+
+            <!-- Поле дати (прив'язане до низу обкладинки) -->
+            <TextView
+                android:id="@+id/label_date_read"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="2dp"
+                android:text="@string/hint_read_date"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorControlNormal"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@+id/edit_text_date_read"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                tools:visibility="visible"/>
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_date_read"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:focusable="false"
+                android:cursorVisible="false"
+                android:inputType="none"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@id/image_view_add_cover"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                tools:visibility="visible"/>
+
             <!-- Кнопки під обкладинкою -->
             <ImageButton
                 android:id="@+id/button_add_from_gallery"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/circle_button_background"
                 android:src="@drawable/ic_gallery"
                 app:layout_constraintEnd_toStartOf="@id/button_add_from_camera"
@@ -80,115 +160,51 @@
                 app:layout_constraintStart_toEndOf="@id/button_add_from_gallery"
                 app:layout_constraintTop_toTopOf="@id/button_add_from_gallery"/>
 
-            <!-- Блок інформації праворуч від обкладинки -->
-            <LinearLayout
-                android:id="@+id/info_layout"
-                android:layout_width="0dp"
+            <!-- Розділювач, що відділяє верхній блок -->
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/top_content_barrier"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:orientation="vertical"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
-                app:layout_constraintTop_toTopOf="@id/image_view_add_cover">
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="button_add_from_gallery, image_view_add_cover" />
 
-                <TextView
-                    android:id="@+id/label_author"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/hint_author"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorControlNormal" />
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edit_text_author"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textCapSentences"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"/>
-
-                <TextView
-                    android:id="@+id/label_genre_edit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/label_genre"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorControlNormal" />
-
-                <Spinner
-                    android:id="@+id/spinner_genre"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"/>
-
-            </LinearLayout>
-
-            <!-- Блок для дати та рейтингу (з'являється за умовою) -->
-            <LinearLayout
-                android:id="@+id/read_details_layout"
-                android:layout_width="0dp"
+            <!-- Рейтинг -->
+            <TextView
+                android:id="@+id/label_rating_edit"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_rating"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorControlNormal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/top_content_barrier"
                 android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
-                app:layout_constraintTop_toBottomOf="@id/info_layout"
-                tools:visibility="visible">
+                tools:visibility="visible"/>
 
-                <TextView
-                    android:id="@+id/label_date_read"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/hint_read_date"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorControlNormal" />
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edit_text_date_read"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:focusable="false"
-                    android:cursorVisible="false"
-                    android:inputType="none"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"/>
-
-                <TextView
-                    android:id="@+id/label_rating_edit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/label_rating"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorControlNormal" />
-
-                <RatingBar
-                    android:id="@+id/rating_bar_edit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="8dp"
-                    android:numStars="5"
-                    android:stepSize="1" />
-            </LinearLayout>
+            <RatingBar
+                android:id="@+id/rating_bar_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:numStars="5"
+                android:stepSize="1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_rating_edit"
+                android:visibility="gone"
+                tools:visibility="visible"/>
 
             <!-- Опис -->
             <TextView
                 android:id="@+id/label_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/hint_description_notes"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorControlNormal"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/button_add_from_gallery" />
+                app:layout_constraintTop_toBottomOf="@id/rating_bar_edit" />
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edit_text_description"
@@ -196,7 +212,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="top"
                 android:inputType="textMultiLine"
-                android:minLines="4"
+                android:lines="1"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:paddingTop="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -204,7 +220,6 @@
                 app:layout_constraintTop_toBottomOf="@id/label_description" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
     </ScrollView>
 
     <!-- Кнопка "Зберегти" внизу -->

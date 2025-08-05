@@ -12,12 +12,13 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.RatingBar
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -99,7 +100,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Ініціалізація нових UI елементів
+        // Ініціалізація UI елементів
         val titleEditText = view.findViewById<TextInputEditText>(R.id.edit_text_title)
         val authorEditText = view.findViewById<TextInputEditText>(R.id.edit_text_author)
         val descriptionEditText = view.findViewById<TextInputEditText>(R.id.edit_text_description)
@@ -107,8 +108,10 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         val coverImageView = view.findViewById<ImageView>(R.id.image_view_add_cover)
         val galleryButton = view.findViewById<ImageButton>(R.id.button_add_from_gallery)
         val cameraButton = view.findViewById<ImageButton>(R.id.button_add_from_camera)
-        val readDetailsLayout = view.findViewById<LinearLayout>(R.id.read_details_layout)
+
+        val dateLabel = view.findViewById<TextView>(R.id.label_date_read)
         val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
+        val ratingLabel = view.findViewById<TextView>(R.id.label_rating_edit)
         val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
         val genreSpinner = view.findViewById<Spinner>(R.id.spinner_genre)
 
@@ -121,21 +124,13 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             genreSpinner.adapter = adapter
         }
 
-        // Обробники для кнопок вибору зображення
-        galleryButton.setOnClickListener {
-            checkAndRequestPermissions()
-        }
+        galleryButton.setOnClickListener { checkAndRequestPermissions() }
         cameraButton.setOnClickListener {
-            // TODO: Реалізувати логіку для камери або поки що використовувати той самий вибір з галереї
             checkAndRequestPermissions()
             Toast.makeText(requireContext(), "Camera feature coming soon!", Toast.LENGTH_SHORT).show()
         }
+        dateEditText.setOnClickListener { showDatePickerDialog(dateEditText) }
 
-        dateEditText.setOnClickListener {
-            showDatePickerDialog(dateEditText)
-        }
-
-        // Логіка встановлення дати за замовчуванням
         val shouldSetDefaultDate = (navArgs.isTransitioningToRead || navArgs.bookStatus == "READ")
         if (shouldSetDefaultDate && savedInstanceState == null) {
             selectedDateInMillis = System.currentTimeMillis()
@@ -148,11 +143,13 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                     val isNewBook = (book == null)
 
                     val statusForVisibility = book?.status ?: navArgs.bookStatus?.let { BookStatus.valueOf(it) } ?: BookStatus.TO_READ
-                    if (statusForVisibility == BookStatus.READ || navArgs.isTransitioningToRead) {
-                        readDetailsLayout.visibility = View.VISIBLE
-                    } else {
-                        readDetailsLayout.visibility = View.GONE
-                    }
+                    val isReadMode = (statusForVisibility == BookStatus.READ || navArgs.isTransitioningToRead)
+
+                    // Керуємо видимістю полів дати та рейтингу
+                    dateLabel.isVisible = isReadMode
+                    dateEditText.isVisible = isReadMode
+                    ratingLabel.isVisible = isReadMode
+                    ratingBar.isVisible = isReadMode
 
                     if (!isNewBook) {
                         book?.let {
@@ -196,9 +193,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             val ratingValue = ratingBar.rating.toInt()
             val selectedGenre = genreSpinner.selectedItem.toString()
 
-            if (!validateInputs(title, author)) {
-                return@setOnClickListener
-            }
+            if (!validateInputs(title, author)) { return@setOnClickListener }
 
             val isBecomingRead = (viewModel.isCurrentBookRead() || navArgs.isTransitioningToRead)
 
@@ -213,9 +208,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                 }
             }
 
-            val newCoverPath = selectedImageUri?.let { uri ->
-                copyImageToInternalStorage(uri)
-            } ?: currentCoverPath
+            val newCoverPath = selectedImageUri?.let { uri -> copyImageToInternalStorage(uri) } ?: currentCoverPath
 
             viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue, selectedGenre)
             findNavController().navigateUp()

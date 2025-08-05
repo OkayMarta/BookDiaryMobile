@@ -169,7 +169,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
 
                         it.coverImagePath?.let { path ->
                             if (selectedImageUri == null) {
-                                Glide.with(this@AddEditBookFragment).load(File(path)).into(coverImageView)
+                                Glide.with(this@AddEditBookFragment).load(path).into(coverImageView)
                             }
                         }
                     }
@@ -235,7 +235,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
     }
 
-    
+
     private fun showDatePickerDialog(dateEditText: TextInputEditText) {
         val calendar = Calendar.getInstance()
         selectedDateInMillis?.let {

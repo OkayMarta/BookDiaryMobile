@@ -95,7 +95,7 @@ class BookAdapter(
             // Логіка для обкладинки
             if (book.coverImagePath != null) {
                 Glide.with(itemView.context)
-                    .load(File(book.coverImagePath))
+                    .load(book.coverImagePath)
                     .placeholder(R.drawable.placeholder_cover)
                     .into(coverImageView)
             } else {

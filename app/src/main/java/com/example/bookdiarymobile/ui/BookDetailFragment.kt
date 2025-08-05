@@ -127,7 +127,7 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
                     // === 4. Завантажуємо обкладинку ===
                     if (book.coverImagePath != null) {
                         Glide.with(this@BookDetailFragment)
-                            .load(File(book.coverImagePath))
+                            .load(book.coverImagePath)
                             .placeholder(R.drawable.placeholder_cover)
                             .into(coverImageView)
                     } else {

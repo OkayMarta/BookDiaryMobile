@@ -104,18 +104,13 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val addCoverButton = view.findViewById<Button>(R.id.button_add_cover)
-
-        addCoverButton.setOnClickListener {
-            // При натисканні на кнопку завжди викликаємо функцію перевірки дозволів
-            checkAndRequestPermissions()
-        }
-
+        // Ініціалізація UI
         val titleEditText = view.findViewById<TextInputEditText>(R.id.edit_text_title)
         val authorEditText = view.findViewById<TextInputEditText>(R.id.edit_text_author)
         val descriptionEditText = view.findViewById<TextInputEditText>(R.id.edit_text_description)
         val saveFab = view.findViewById<FloatingActionButton>(R.id.fab_save)
         val coverImageView = view.findViewById<ImageView>(R.id.image_view_add_cover)
+        val addCoverButton = view.findViewById<Button>(R.id.button_add_cover)
         val readDetailsLayout = view.findViewById<LinearLayout>(R.id.read_details_layout)
         val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
         val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
@@ -130,54 +125,62 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             genreSpinner.adapter = adapter
         }
 
+        addCoverButton.setOnClickListener {
+            checkAndRequestPermissions()
+        }
+
         dateEditText.setOnClickListener {
             showDatePickerDialog(dateEditText)
+        }
+
+        // *** Логіка встановлення дати ***
+        val shouldSetDefaultDate = (navArgs.isTransitioningToRead || navArgs.bookStatus == "READ")
+        if (shouldSetDefaultDate && savedInstanceState == null) { // savedInstanceState == null гарантує, що це перший запуск, а не поворот екрану
+            selectedDateInMillis = System.currentTimeMillis()
+            dateEditText.setText(formatDate(selectedDateInMillis!!))
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { book ->
-                    val currentBook = book ?:
-                    com.example.bookdiarymobile.data.Book(
-                        id = -1, title = "", author = "", genre = "", description = "",
-                        coverImagePath = null, status = navArgs.bookStatus?.let { BookStatus.valueOf(it) } ?: BookStatus.TO_READ,
-                        dateAdded = 0L, dateRead = null, rating = null
-                    )
+                    val isNewBook = (book == null)
 
-                    if (currentBook.status == BookStatus.READ || navArgs.isTransitioningToRead) {
+                    val statusForVisibility = book?.status ?: navArgs.bookStatus?.let { BookStatus.valueOf(it) } ?: BookStatus.TO_READ
+                    if (statusForVisibility == BookStatus.READ || navArgs.isTransitioningToRead) {
                         readDetailsLayout.visibility = View.VISIBLE
                     } else {
                         readDetailsLayout.visibility = View.GONE
                     }
 
-                    book?.let {
-                        currentCoverPath = it.coverImagePath
-                        if (titleEditText.text.toString() != it.title) titleEditText.setText(it.title)
-                        if (authorEditText.text.toString() != it.author) authorEditText.setText(it.author)
-                        if (descriptionEditText.text.toString() != it.description) descriptionEditText.setText(it.description)
+                    if (!isNewBook) {
+                        book?.let {
+                            currentCoverPath = it.coverImagePath
+                            if (titleEditText.text.toString() != it.title) titleEditText.setText(it.title)
+                            if (authorEditText.text.toString() != it.author) authorEditText.setText(it.author)
+                            if (descriptionEditText.text.toString() != it.description) descriptionEditText.setText(it.description)
 
-                        it.dateRead?.let { date ->
-                            selectedDateInMillis = date
-                            dateEditText.setText(formatDate(date))
-                        }
-                        it.rating?.let { rating ->
-                            ratingBar.rating = rating.toFloat()
-                        }
-
-                        val genres = resources.getStringArray(R.array.book_genres)
-                        val genrePosition = genres.indexOf(it.genre)
-                        genreSpinner.setSelection(if (genrePosition >= 0) genrePosition else 0)
-
-                        it.coverImagePath?.let { path ->
-                            if (selectedImageUri == null) {
-                                Glide.with(this@AddEditBookFragment).load(path).into(coverImageView)
+                            // Заповнюємо дату та рейтинг, тільки якщо вони вже є в базі
+                            // і ми не встановили їх щойно за замовчуванням
+                            if (savedInstanceState != null || !shouldSetDefaultDate) {
+                                it.dateRead?.let { date ->
+                                    selectedDateInMillis = date
+                                    dateEditText.setText(formatDate(date))
+                                }
                             }
-                        }
 
-                        // Встановлюємо поточну дату, якщо це перехід з TO_READ
-                        if (navArgs.isTransitioningToRead && selectedDateInMillis == null) {
-                            selectedDateInMillis = System.currentTimeMillis()
-                            dateEditText.setText(formatDate(selectedDateInMillis!!))
+                            it.rating?.let { rating ->
+                                ratingBar.rating = rating.toFloat()
+                            }
+
+                            val genres = resources.getStringArray(R.array.book_genres)
+                            val genrePosition = genres.indexOf(it.genre)
+                            genreSpinner.setSelection(if (genrePosition >= 0) genrePosition else 0)
+
+                            it.coverImagePath?.let { path ->
+                                if (selectedImageUri == null) {
+                                    Glide.with(this@AddEditBookFragment).load(path).into(coverImageView)
+                                }
+                            }
                         }
                     }
                 }
@@ -195,12 +198,16 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                 return@setOnClickListener
             }
 
-            val isReadStatus = viewModel.isCurrentBookRead()
-            if (isReadStatus) {
+            // *** ЛОГІКА ВАЛІДАЦІЇ ***
+            // Перевіряємо, чи має книга отримати статус READ
+            val isBecomingRead = (viewModel.isCurrentBookRead() || navArgs.isTransitioningToRead)
+
+            if (isBecomingRead) {
                 if (selectedDateInMillis == null) {
                     Toast.makeText(context, "Please select a read date", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+                // Перевіряємо, що рейтинг не нульовий (тобто, обрана хоча б одна зірка)
                 if (ratingValue == 0) {
                     Toast.makeText(context, "Please provide a rating (1 to 5 stars)", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener

@@ -131,7 +131,7 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
                             .placeholder(R.drawable.placeholder_cover)
                             .into(coverImageView)
                     } else {
-                        coverImageView.setImageResource(R.drawable.placeholder_cover)
+                        coverImageView.setImageResource(R.drawable.placeholder_cover_sharp)
                     }
                 }
             }

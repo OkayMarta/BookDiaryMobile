@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RatingBar
@@ -29,8 +30,8 @@ import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
+import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookStatus
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
@@ -64,29 +65,23 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     private var currentCoverPath: String? = null
     private var selectedDateInMillis: Long? = null
 
-    // --- 1. Лаунчер для запиту дозволів ---
     private val requestPermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            // Перевіряємо, чи всі запитані дозволи надано
             val allPermissionsGranted = permissions.entries.all { it.value }
             if (allPermissionsGranted) {
-                // Якщо так, запускаємо галерею
                 openGalleryLauncher.launch("image/*")
             } else {
                 Toast.makeText(requireContext(), "Permissions required to select an image.", Toast.LENGTH_LONG).show()
             }
         }
 
-    // --- 2. Лаунчер для відкриття галереї та отримання URI ---
     private val openGalleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let { sourceUri ->
-                // Коли отримали зображення, запускаємо UCrop
                 launchUCrop(sourceUri)
             }
         }
 
-    // --- 3. Лаунчер для отримання результату від UCrop ---
     private val cropImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val resultUri = result.data?.let { UCrop.getOutput(it) }
@@ -104,13 +99,14 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Ініціалізація UI
+        // Ініціалізація нових UI елементів
         val titleEditText = view.findViewById<TextInputEditText>(R.id.edit_text_title)
         val authorEditText = view.findViewById<TextInputEditText>(R.id.edit_text_author)
         val descriptionEditText = view.findViewById<TextInputEditText>(R.id.edit_text_description)
-        val saveFab = view.findViewById<FloatingActionButton>(R.id.fab_save)
+        val saveButton = view.findViewById<Button>(R.id.button_save)
         val coverImageView = view.findViewById<ImageView>(R.id.image_view_add_cover)
-        val addCoverButton = view.findViewById<Button>(R.id.button_add_cover)
+        val galleryButton = view.findViewById<ImageButton>(R.id.button_add_from_gallery)
+        val cameraButton = view.findViewById<ImageButton>(R.id.button_add_from_camera)
         val readDetailsLayout = view.findViewById<LinearLayout>(R.id.read_details_layout)
         val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
         val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
@@ -125,17 +121,23 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             genreSpinner.adapter = adapter
         }
 
-        addCoverButton.setOnClickListener {
+        // Обробники для кнопок вибору зображення
+        galleryButton.setOnClickListener {
             checkAndRequestPermissions()
+        }
+        cameraButton.setOnClickListener {
+            // TODO: Реалізувати логіку для камери або поки що використовувати той самий вибір з галереї
+            checkAndRequestPermissions()
+            Toast.makeText(requireContext(), "Camera feature coming soon!", Toast.LENGTH_SHORT).show()
         }
 
         dateEditText.setOnClickListener {
             showDatePickerDialog(dateEditText)
         }
 
-        // *** Логіка встановлення дати ***
+        // Логіка встановлення дати за замовчуванням
         val shouldSetDefaultDate = (navArgs.isTransitioningToRead || navArgs.bookStatus == "READ")
-        if (shouldSetDefaultDate && savedInstanceState == null) { // savedInstanceState == null гарантує, що це перший запуск, а не поворот екрану
+        if (shouldSetDefaultDate && savedInstanceState == null) {
             selectedDateInMillis = System.currentTimeMillis()
             dateEditText.setText(formatDate(selectedDateInMillis!!))
         }
@@ -159,8 +161,6 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                             if (authorEditText.text.toString() != it.author) authorEditText.setText(it.author)
                             if (descriptionEditText.text.toString() != it.description) descriptionEditText.setText(it.description)
 
-                            // Заповнюємо дату та рейтинг, тільки якщо вони вже є в базі
-                            // і ми не встановили їх щойно за замовчуванням
                             if (savedInstanceState != null || !shouldSetDefaultDate) {
                                 it.dateRead?.let { date ->
                                     selectedDateInMillis = date
@@ -176,10 +176,12 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                             val genrePosition = genres.indexOf(it.genre)
                             genreSpinner.setSelection(if (genrePosition >= 0) genrePosition else 0)
 
-                            it.coverImagePath?.let { path ->
+                            if (it.coverImagePath != null) {
                                 if (selectedImageUri == null) {
-                                    Glide.with(this@AddEditBookFragment).load(path).into(coverImageView)
+                                    Glide.with(this@AddEditBookFragment).load(it.coverImagePath).into(coverImageView)
                                 }
+                            } else {
+                                coverImageView.setImageResource(R.drawable.placeholder_cover_sharp)
                             }
                         }
                     }
@@ -187,7 +189,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             }
         }
 
-        saveFab.setOnClickListener {
+        saveButton.setOnClickListener {
             val title = titleEditText.text.toString().trim()
             val author = authorEditText.text.toString().trim()
             val description = descriptionEditText.text.toString().trim()
@@ -198,8 +200,6 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                 return@setOnClickListener
             }
 
-            // *** ЛОГІКА ВАЛІДАЦІЇ ***
-            // Перевіряємо, чи має книга отримати статус READ
             val isBecomingRead = (viewModel.isCurrentBookRead() || navArgs.isTransitioningToRead)
 
             if (isBecomingRead) {
@@ -207,7 +207,6 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                     Toast.makeText(context, "Please select a read date", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                // Перевіряємо, що рейтинг не нульовий (тобто, обрана хоча б одна зірка)
                 if (ratingValue == 0) {
                     Toast.makeText(context, "Please provide a rating (1 to 5 stars)", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
@@ -223,7 +222,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
     }
 
-    // --- ФУНКЦІЯ ДЛЯ ПЕРЕВІРКИ ДОЗВОЛІВ ---
+// --- ФУНКЦІЯ ДЛЯ ПЕРЕВІРКИ ДОЗВОЛІВ ---
     private fun checkAndRequestPermissions() {
         val permissionsToRequest: Array<String> =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

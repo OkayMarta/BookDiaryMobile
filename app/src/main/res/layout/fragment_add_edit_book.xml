@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,161 +8,219 @@
     tools:context=".ui.AddEditBookFragment">
 
     <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/button_save"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
 
-            <!-- Блок обкладинки -->
+            <!-- Назва книги -->
+            <TextView
+                android:id="@+id/label_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hint_title"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorControlNormal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_title" />
+
+            <!-- Обкладинка -->
             <ImageView
                 android:id="@+id/image_view_add_cover"
-                android:layout_width="100dp"
-                android:layout_height="150dp"
-                android:background="#E0E0E0"
+                android:layout_width="140dp"
+                android:layout_height="210dp"
+                android:layout_marginTop="24dp"
                 android:scaleType="centerCrop"
+                android:src="@drawable/placeholder_cover_sharp"
+                android:contentDescription="@string/book_cover_description"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:src="@tools:sample/backgrounds/scenic"
-                android:contentDescription="@string/book_cover_description"/>
-            <Button
-                android:id="@+id/button_add_cover"
-                style="?attr/materialButtonOutlinedStyle"
+                app:layout_constraintTop_toBottomOf="@id/edit_text_title" />
+
+            <!-- Кнопки під обкладинкою -->
+            <ImageButton
+                android:id="@+id/button_add_from_gallery"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/circle_button_background"
+                android:src="@drawable/ic_gallery"
+                app:layout_constraintEnd_toStartOf="@id/button_add_from_camera"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="@id/image_view_add_cover"
+                app:layout_constraintTop_toBottomOf="@id/image_view_add_cover"/>
+
+            <ImageButton
+                android:id="@+id/button_add_from_camera"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="24dp"
+                android:background="@drawable/circle_button_background"
+                android:src="@drawable/ic_camera"
+                app:layout_constraintEnd_toEndOf="@id/image_view_add_cover"
+                app:layout_constraintStart_toEndOf="@id/button_add_from_gallery"
+                app:layout_constraintTop_toTopOf="@id/button_add_from_gallery"/>
+
+            <!-- Блок інформації праворуч від обкладинки -->
+            <LinearLayout
+                android:id="@+id/info_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:text="@string/choose_cover"
-                app:layout_constraintBottom_toBottomOf="@id/image_view_add_cover"
+                android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/image_view_add_cover" />
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                app:layout_constraintTop_toTopOf="@id/image_view_add_cover">
 
-            <!-- Поле назви -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/text_input_layout_title"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="@string/hint_title"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/image_view_add_cover">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edit_text_title"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/label_author"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapSentences" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:text="@string/hint_author"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorControlNormal" />
 
-            <!-- Поле автора -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/text_input_layout_author"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="@string/hint_author"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/text_input_layout_title">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edit_text_author"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapSentences" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:inputType="textCapSentences"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"/>
 
-            <!-- Spinner для вибору жанру -->
-            <Spinner
-                android:id="@+id/spinner_genre"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/text_input_layout_author" />
+                <TextView
+                    android:id="@+id/label_genre_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/label_genre"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorControlNormal" />
 
-            <!-- Поле опису -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/text_input_layout_description"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="@string/hint_description_notes"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/spinner_genre">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edit_text_description"
+                <Spinner
+                    android:id="@+id/spinner_genre"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="top"
-                    android:inputType="textMultiLine"
-                    android:minLines="4" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginTop="8dp"/>
 
-            <!-- Блок для дати та рейтингу -->
+            </LinearLayout>
+
+            <!-- Блок для дати та рейтингу (з'являється за умовою) -->
             <LinearLayout
                 android:id="@+id/read_details_layout"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
+                android:orientation="vertical"
                 android:visibility="gone"
-                tools:visibility="visible"
-                app:layout_constraintTop_toBottomOf="@id/text_input_layout_description">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/image_view_add_cover"
+                app:layout_constraintTop_toBottomOf="@id/info_layout"
+                tools:visibility="visible">
 
-                <!-- Поле для дати прочитання -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/text_input_layout_date"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                <TextView
+                    android:id="@+id/label_date_read"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/hint_read_date"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorControlNormal" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edit_text_date_read"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/hint_read_date">
+                    android:focusable="false"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"/>
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/edit_text_date_read"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:focusable="false"
-                        android:cursorVisible="false"
-                        android:inputType="none" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Заголовок для рейтингу -->
                 <TextView
-                    android:id="@+id/label_rating"
+                    android:id="@+id/label_rating_edit"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/label_rating"
-                    android:textAppearance="?attr/textAppearanceLabelLarge" />
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorControlNormal" />
 
-                <!-- Рейтинг-бар -->
                 <RatingBar
                     android:id="@+id/rating_bar_edit"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
                     android:numStars="5"
                     android:stepSize="1" />
             </LinearLayout>
 
+            <!-- Опис -->
+            <TextView
+                android:id="@+id/label_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/hint_description_notes"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorControlNormal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/button_add_from_gallery" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_description"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:minLines="4"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingTop="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/label_description" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
+
     </ScrollView>
 
-    <!-- Кнопка "Зберегти" -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_save"
-        android:layout_width="wrap_content"
+    <!-- Кнопка "Зберегти" внизу -->
+    <Button
+        android:id="@+id/button_save"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/save_book"
-        app:srcCompat="@drawable/ic_read" />
+        android:text="@string/save_book"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

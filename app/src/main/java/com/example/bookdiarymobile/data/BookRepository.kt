@@ -52,10 +52,7 @@ class BookRepository(private val bookDao: BookDao) {
      * Асинхронно видаляє книгу з бази даних, а також її файл обкладинки зі сховища.
      */
     suspend fun deleteBook(book: Book) {
-        // 1. Видалення запису про книгу з бази даних.
         bookDao.deleteBook(book)
-
-        // 2. Видалення файлу обкладинки, якщо він існує.
         book.coverImagePath?.let { path ->
             try {
                 val coverFile = File(path)
@@ -63,7 +60,6 @@ class BookRepository(private val bookDao: BookDao) {
                     coverFile.delete()
                 }
             } catch (e: Exception) {
-                // 3. Обробка можливих помилок під час видалення файлу, щоб уникнути збою додатку.
                 e.printStackTrace()
             }
         }
@@ -90,43 +86,12 @@ class BookRepository(private val bookDao: BookDao) {
      */
     fun getBooksReadCountForYear(yearStart: Long, yearEnd: Long): Flow<Int> =
         bookDao.getBooksReadCountForYear(yearStart, yearEnd)
+    
 
-
-    fun getSortedBooks(sortOrder: SortOrder): Flow<List<Book>> {
-        return when (sortOrder) {
-            SortOrder.TITLE_ASC -> bookDao.getAllReadBooksSortedByTitleAsc()
-            SortOrder.TITLE_DESC -> bookDao.getAllReadBooksSortedByTitleDesc()
-            SortOrder.DATE_READ_ASC -> bookDao.getAllReadBooksSortedByDateAsc()
-            SortOrder.DATE_READ_DESC -> bookDao.getAllReadBooksSortedByDateDesc()
-            SortOrder.RATING_ASC -> bookDao.getAllReadBooksSortedByRatingAsc()
-            SortOrder.RATING_DESC -> bookDao.getAllReadBooksSortedByRatingDesc()
-            // Наразі ігноруємо сортування для ToRead, ViewModel сама вирішить що викликати
-            else -> bookDao.getAllReadBooks() // Default
-        }
-    }
-
-    fun getSortedToReadBooks(sortOrder: SortOrder): Flow<List<Book>> {
-        return when (sortOrder) {
-            SortOrder.TITLE_ASC -> bookDao.getAllToReadBooksSortedByTitleAsc()
-            SortOrder.TITLE_DESC -> bookDao.getAllToReadBooksSortedByTitleDesc()
-            SortOrder.DATE_ADDED_ASC -> bookDao.getAllToReadBooksSortedByDateAsc()
-            SortOrder.DATE_ADDED_DESC -> bookDao.getAllToReadBooksSortedByDateDesc()
-            else -> bookDao.getAllToReadBooks() // Default
-        }
-    }
-
-    fun getSortedFavoriteBooks(sortOrder: SortOrder): Flow<List<Book>> {
-        return when (sortOrder) {
-            SortOrder.TITLE_ASC -> bookDao.getFavoriteBooksSortedByTitleAsc()
-            SortOrder.TITLE_DESC -> bookDao.getFavoriteBooksSortedByTitleDesc()
-            SortOrder.DATE_READ_ASC -> bookDao.getFavoriteBooksSortedByDateAsc()
-            SortOrder.DATE_READ_DESC -> bookDao.getFavoriteBooksSortedByDateDesc()
-            SortOrder.RATING_ASC -> bookDao.getFavoriteBooksSortedByRatingAsc()
-            SortOrder.RATING_DESC -> bookDao.getFavoriteBooksSortedByRatingDesc()
-            else -> bookDao.getFavoriteBooks() // Default
-        }
-    }
-
+    /**
+     * Універсальний метод, який отримує відфільтрований та відсортований список книг.
+     * Використовується всіма ViewModel'ами для відображення списків.
+     */
     fun getFilteredAndSortedBooks(
         screenType: ScreenType,
         sortOrder: SortOrder,

@@ -1,8 +1,11 @@
 package com.example.bookdiarymobile.ui
 
+import android.Manifest
 import android.app.Activity
 import android.app.DatePickerDialog
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -60,12 +63,33 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
     private var currentCoverPath: String? = null
     private var selectedDateInMillis: Long? = null
 
-    // === НОВИЙ ЛАУНЧЕР ДЛЯ РЕЗУЛЬТАТУ ОБРІЗКИ ===
+    // --- 1. Лаунчер для запиту дозволів ---
+    private val requestPermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            // Перевіряємо, чи всі запитані дозволи надано
+            val allPermissionsGranted = permissions.entries.all { it.value }
+            if (allPermissionsGranted) {
+                // Якщо так, запускаємо галерею
+                openGalleryLauncher.launch("image/*")
+            } else {
+                Toast.makeText(requireContext(), "Permissions required to select an image.", Toast.LENGTH_LONG).show()
+            }
+        }
+
+    // --- 2. Лаунчер для відкриття галереї та отримання URI ---
+    private val openGalleryLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { sourceUri ->
+                // Коли отримали зображення, запускаємо UCrop
+                launchUCrop(sourceUri)
+            }
+        }
+
+    // --- 3. Лаунчер для отримання результату від UCrop ---
     private val cropImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val resultUri = result.data?.let { UCrop.getOutput(it) }
             resultUri?.let {
-                // Отримали URI обрізаного зображення
                 selectedImageUri = it
                 val coverImageView = view?.findViewById<ImageView>(R.id.image_view_add_cover)
                 coverImageView?.let { iv -> Glide.with(this).load(it).into(iv) }
@@ -76,32 +100,26 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
     }
 
-    // === СТАРИЙ ЛАУНЧЕР ТЕПЕР ЗАПУСКАЄ UCROP ===
-    private val imagePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { sourceUri ->
-                // Запускаємо uCrop, коли отримали зображення з галереї
-                launchUCrop(sourceUri)
-            }
-        }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Ініціалізація UI-елементів
+        val addCoverButton = view.findViewById<Button>(R.id.button_add_cover)
+
+        addCoverButton.setOnClickListener {
+            // При натисканні на кнопку завжди викликаємо функцію перевірки дозволів
+            checkAndRequestPermissions()
+        }
+
         val titleEditText = view.findViewById<TextInputEditText>(R.id.edit_text_title)
         val authorEditText = view.findViewById<TextInputEditText>(R.id.edit_text_author)
         val descriptionEditText = view.findViewById<TextInputEditText>(R.id.edit_text_description)
         val saveFab = view.findViewById<FloatingActionButton>(R.id.fab_save)
         val coverImageView = view.findViewById<ImageView>(R.id.image_view_add_cover)
-        val addCoverButton = view.findViewById<Button>(R.id.button_add_cover)
         val readDetailsLayout = view.findViewById<LinearLayout>(R.id.read_details_layout)
         val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
         val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
-
-        // === ІНІЦІАЛІЗАЦІЯ SPINNER ===
         val genreSpinner = view.findViewById<Spinner>(R.id.spinner_genre)
-        // Створюємо адаптер для спіннера, використовуючи масив з strings.xml
+
         ArrayAdapter.createFromResource(
             requireContext(),
             R.array.book_genres,
@@ -111,11 +129,6 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             genreSpinner.adapter = adapter
         }
 
-        addCoverButton.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
-        }
-
-        // === ОБРОБНИК НАТИСКАННЯ НА ПОЛЕ ДАТИ ===
         dateEditText.setOnClickListener {
             showDatePickerDialog(dateEditText)
         }
@@ -123,30 +136,25 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { book ->
-                    // Визначаємо, чи маємо справу з новою книгою чи редагуємо існуючу
-                    val currentBook = book ?: // Якщо book == null, створюємо "порожню" книгу
-                    // Це потрібно, щоб визначити видимість полів для нових READ книг.
+                    val currentBook = book ?:
                     com.example.bookdiarymobile.data.Book(
                         id = -1, title = "", author = "", genre = "", description = "",
                         coverImagePath = null, status = navArgs.bookStatus?.let { BookStatus.valueOf(it) } ?: BookStatus.TO_READ,
                         dateAdded = 0L, dateRead = null, rating = null
                     )
 
-                    // === ЛОГІКА ВИДИМОСТІ ПОЛІВ ДАТИ ТА РЕЙТИНГУ ===
                     if (currentBook.status == BookStatus.READ) {
                         readDetailsLayout.visibility = View.VISIBLE
                     } else {
                         readDetailsLayout.visibility = View.GONE
                     }
 
-                    // Заповнюємо поля, якщо це режим редагування
                     book?.let {
                         currentCoverPath = it.coverImagePath
                         if (titleEditText.text.toString() != it.title) titleEditText.setText(it.title)
                         if (authorEditText.text.toString() != it.author) authorEditText.setText(it.author)
                         if (descriptionEditText.text.toString() != it.description) descriptionEditText.setText(it.description)
 
-                        // Заповнюємо дату та рейтинг, якщо вони є
                         it.dateRead?.let { date ->
                             selectedDateInMillis = date
                             dateEditText.setText(formatDate(date))
@@ -155,10 +163,8 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                             ratingBar.rating = rating.toFloat()
                         }
 
-                        // === ВСТАНОВЛЕННЯ ПОЧАТКОВОГО ЗНАЧЕННЯ ДЛЯ SPINNER ===
                         val genres = resources.getStringArray(R.array.book_genres)
                         val genrePosition = genres.indexOf(it.genre)
-                        // Якщо жанр знайдено, встановлюємо його, інакше - позицію 0 ("Оберіть жанр")
                         genreSpinner.setSelection(if (genrePosition >= 0) genrePosition else 0)
 
                         it.coverImagePath?.let { path ->
@@ -172,22 +178,17 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
 
         saveFab.setOnClickListener {
-            // --- 1. Отримуємо дані з полів ---
             val title = titleEditText.text.toString().trim()
             val author = authorEditText.text.toString().trim()
             val description = descriptionEditText.text.toString().trim()
             val ratingValue = ratingBar.rating.toInt()
             val selectedGenre = genreSpinner.selectedItem.toString()
 
-            // --- 2. Викликаємо нову функцію валідації ---
             if (!validateInputs(title, author)) {
-                return@setOnClickListener // Зупиняємо, якщо базові поля не заповнені
+                return@setOnClickListener
             }
 
-            // --- 3. Додаткова валідація для прочитаних книг ---
-            // Визначаємо, чи має книга статус READ (або зараз отримає його)
             val isReadStatus = viewModel.isCurrentBookRead()
-
             if (isReadStatus) {
                 if (selectedDateInMillis == null) {
                     Toast.makeText(context, "Please select a read date", Toast.LENGTH_SHORT).show()
@@ -199,23 +200,44 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                 }
             }
 
-            // --- 4. Якщо все гаразд, зберігаємо книгу ---
             val newCoverPath = selectedImageUri?.let { uri ->
                 copyImageToInternalStorage(uri)
             } ?: currentCoverPath
 
-            // Передаємо нові дані у ViewModel
             viewModel.saveBook(title, author, description, newCoverPath, selectedDateInMillis, ratingValue, selectedGenre)
             findNavController().navigateUp()
         }
     }
 
-    /**
-     * Показує системний діалог вибору дати.
-     */
+    // --- ФУНКЦІЯ ДЛЯ ПЕРЕВІРКИ ДОЗВОЛІВ ---
+    private fun checkAndRequestPermissions() {
+        val permissionsToRequest: Array<String> =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // На Android 13+ запитуємо тільки дозвіл на зображення.
+                // Система сама покаже діалог з опцією "Select photos"
+                arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+            } else {
+                // На старіших версіях - старий дозвіл
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+
+        // Перевіряємо, чи дозволи вже надано
+        val allPermissionsGranted = permissionsToRequest.all {
+            ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (allPermissionsGranted) {
+            // Якщо дозволи є, одразу запускаємо галерею
+            openGalleryLauncher.launch("image/*")
+        } else {
+            // Якщо дозволів немає, запускаємо системний діалог для їх запиту
+            requestPermissionsLauncher.launch(permissionsToRequest)
+        }
+    }
+
+    
     private fun showDatePickerDialog(dateEditText: TextInputEditText) {
         val calendar = Calendar.getInstance()
-        // Якщо дата вже була вибрана, встановлюємо її в діалозі
         selectedDateInMillis?.let {
             calendar.timeInMillis = it
         }
@@ -236,49 +258,30 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         datePickerDialog.show()
     }
 
-    /**
-     * Форматує timestamp у рядок "дд.ММ.рррр".
-     */
     private fun formatDate(millis: Long): String {
         val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         return formatter.format(Date(millis))
     }
 
-    /**
-     * Функція для запуску екрану uCrop
-     */
     private fun launchUCrop(sourceUri: Uri) {
-        // Створюємо унікальне ім'я для тимчасового файлу обрізаного зображення
         val destinationFileName = "${UUID.randomUUID()}.jpg"
         val destinationUri = Uri.fromFile(File(requireContext().cacheDir, destinationFileName))
-
-        // Налаштування uCrop
         val options = UCrop.Options().apply {
-            // Налаштування кольорів (можна підібрати під вашу тему)
-            // Використовуйте ваші кольори з R.color або залиште за замовчуванням
             val primaryColor = ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_primary)
             val primaryDarkColor = ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_primary_dark)
             val textColor = ContextCompat.getColor(requireContext(), com.google.android.material.R.color.design_default_color_on_primary)
-
             setStatusBarColor(primaryDarkColor)
             setToolbarColor(primaryColor)
             setActiveControlsWidgetColor(primaryColor)
             setToolbarWidgetColor(textColor)
-
-            // Показуємо панель з кнопками повороту та масштабування
             setHideBottomControls(false)
-            // Дозволяємо вільне обертання
-            setFreeStyleCropEnabled(false) // Краще залишити false для книжкових обкладинок
+            setFreeStyleCropEnabled(false)
         }
-
-        // Створюємо інтент для uCrop
         val uCropIntent = UCrop.of(sourceUri, destinationUri)
             .withOptions(options)
-            .withAspectRatio(2f, 3f) // Пропонуємо співвідношення сторін для книжкової обкладинки
-            .withMaxResultSize(450, 675) // Встановлюємо максимальний розмір
+            .withAspectRatio(2f, 3f)
+            .withMaxResultSize(450, 675)
             .getIntent(requireContext())
-
-        // Запускаємо лаунчер, який очікує на результат
         cropImageLauncher.launch(uCropIntent)
     }
 
@@ -287,10 +290,8 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
             val coversDir = File(requireContext().filesDir, "covers")
             if (!coversDir.exists()) coversDir.mkdirs()
-
             val fileName = "${UUID.randomUUID()}.jpg"
             val file = File(coversDir, fileName)
-
             val outputStream = FileOutputStream(file)
             inputStream?.copyTo(outputStream)
             inputStream?.close()
@@ -298,14 +299,11 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()
+            Toast.makeText(requireContext(), "Failed to save cover image", Toast.LENGTH_LONG).show()
             null
         }
     }
 
-    /**
-     * Нова функція для валідації основних полів вводу.
-     * @return true, якщо валідація пройшла успішно, інакше false.
-     */
     private fun validateInputs(title: String, author: String): Boolean {
         if (title.isBlank()) {
             Toast.makeText(context, "Title cannot be empty", Toast.LENGTH_SHORT).show()
@@ -315,7 +313,6 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             Toast.makeText(context, "Author cannot be empty", Toast.LENGTH_SHORT).show()
             return false
         }
-        // Перевіряємо, чи вибрано жанр (позиція 0 - "Select genre")
         val genreSpinner = view?.findViewById<Spinner>(R.id.spinner_genre)
         if (genreSpinner?.selectedItemPosition == 0) {
             Toast.makeText(context, R.string.validation_select_genre, Toast.LENGTH_SHORT).show()

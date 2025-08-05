@@ -150,25 +150,20 @@
             app:layout_constraintEnd_toEndOf="parent"/>
 
         <!-- Кнопки дій -->
-        <ImageButton
-            android:id="@+id/button_favorite"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="24dp"
-            android:src="@drawable/ic_favorite_crown"
-            android:background="@drawable/circle_button_background"
-            android:contentDescription="@string/toggle_favorite_status"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider_buttons" />
+
+        <!-- Кнопка Видалити (завжди праворуч) -->
         <ImageButton
             android:id="@+id/button_delete"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:layout_marginTop="24dp"
             android:src="@drawable/ic_delete"
             android:background="@drawable/circle_button_background"
             android:contentDescription="@string/action_delete"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/button_favorite" />
+            app:layout_constraintTop_toBottomOf="@id/divider_buttons" />
+
+        <!-- Кнопка Редагувати (зліва від "Видалити") -->
         <ImageButton
             android:id="@+id/button_edit"
             android:layout_width="48dp"
@@ -178,23 +173,38 @@
             android:background="@drawable/circle_button_background"
             android:contentDescription="@string/action_edit"
             app:layout_constraintEnd_toStartOf="@id/button_delete"
-            app:layout_constraintTop_toTopOf="@id/button_favorite" />
+            app:layout_constraintTop_toTopOf="@id/button_delete" />
+
+        <!-- Кнопка Вибране (зліва, видима тільки для READ) -->
+        <ImageButton
+            android:id="@+id/button_favorite"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_favorite_crown"
+            android:background="@drawable/circle_button_background"
+            android:contentDescription="@string/toggle_favorite_status"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/button_delete" />
+
+        <!-- Кнопка "Позначити як прочитану" (зліва, займає вільний простір, видима тільки для TO_READ) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_move_to_read"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/outline_button_background"
-            android:paddingVertical="12dp"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="16dp"
             android:text="@string/mark_as_read"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            android:textSize="16sp"
+            app:cornerRadius="24dp"
+            app:strokeColor="@color/text_primary"
+            app:strokeWidth="1.5dp"
             android:visibility="gone"
-            app:backgroundTint="@null"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/button_edit"
+            app:layout_constraintEnd_toStartOf="@id/button_edit"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider_buttons"
+            app:layout_constraintTop_toTopOf="@id/button_edit"
             tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

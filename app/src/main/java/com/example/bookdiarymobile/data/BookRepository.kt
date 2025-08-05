@@ -86,7 +86,7 @@ class BookRepository(private val bookDao: BookDao) {
      */
     fun getBooksReadCountForYear(yearStart: Long, yearEnd: Long): Flow<Int> =
         bookDao.getBooksReadCountForYear(yearStart, yearEnd)
-    
+
 
     /**
      * Універсальний метод, який отримує відфільтрований та відсортований список книг.

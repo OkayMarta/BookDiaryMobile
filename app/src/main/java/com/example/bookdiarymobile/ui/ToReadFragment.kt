@@ -19,13 +19,13 @@ import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.SortOrder
 import com.example.bookdiarymobile.utils.getSerializableCompat
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class ToReadFragment : Fragment(R.layout.fragment_to_read) {
 
-    private val viewModel: ToReadViewModel by viewModels {
-        ViewModelFactory((activity?.application as BookApplication).repository)
-    }
+    private val viewModel: ToReadViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

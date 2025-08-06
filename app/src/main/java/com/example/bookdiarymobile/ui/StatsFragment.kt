@@ -15,14 +15,14 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+@AndroidEntryPoint
 class StatsFragment : Fragment(R.layout.fragment_stats) {
 
-    private val viewModel: StatsViewModel by viewModels {
-        ViewModelFactory((activity?.application as BookApplication).repository)
-    }
+    private val viewModel: StatsViewModel by viewModels()
 
     private lateinit var months: Array<String>
 

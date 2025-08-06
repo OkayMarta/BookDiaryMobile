@@ -1,20 +1,26 @@
 package com.example.bookdiarymobile.ui
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookRepository
 import com.example.bookdiarymobile.data.BookStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class BookDetailViewModel(
+@HiltViewModel
+class BookDetailViewModel @Inject constructor(
     private val repository: BookRepository,
-    bookId: Int
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val bookId: Int = savedStateHandle.get<Int>("book_id")!!
 
     val book: StateFlow<Book> = repository.getBookById(bookId)
         .filterNotNull()

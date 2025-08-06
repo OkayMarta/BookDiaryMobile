@@ -5,8 +5,8 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.data.BookRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +17,7 @@ import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import javax.inject.Inject
 
 /**
  * Перелічення, що представляють можливі стани процесу експорту.
@@ -37,7 +38,8 @@ private const val TAG = "BackupDebug"
  * ViewModel для екрану резервного копіювання.
  * Відповідає за логіку експорту та імпорту даних.
  */
-class BackupViewModel(private val repository: BookRepository) : ViewModel() {
+@HiltViewModel
+class BackupViewModel @Inject constructor(private val repository: BookRepository) : ViewModel() {
 
     /**
      * StateFlow для відстеження статусу експорту. UI підписується на нього,
@@ -119,7 +121,6 @@ class BackupViewModel(private val repository: BookRepository) : ViewModel() {
             _importStatus.value = ImportStatus.IN_PROGRESS
             Log.d(TAG, "--- STARTING IMPORT ---")
 
-            val app = context.applicationContext as BookApplication
             // Отримуємо кореневу папку даних додатку (/data/data/com.example.bookdiarymobile).
             val appDataDir = context.filesDir.parentFile
             if (appDataDir == null) {
@@ -134,11 +135,6 @@ class BackupViewModel(private val repository: BookRepository) : ViewModel() {
             val coversDir = File(context.filesDir, "covers")
 
             try {
-                // Критично важливий крок: закриваємо з'єднання з БД перед тим, як замінити її файл.
-                Log.d(TAG, "Closing database...")
-                app.closeDatabase()
-                Log.d(TAG, "Database closed.")
-
                 // Видаляємо старі папки з базою даних та обкладинками.
                 if (dbDir != null && dbDir.exists()) {
                     val deleted = dbDir.deleteRecursively()
@@ -149,7 +145,6 @@ class BackupViewModel(private val repository: BookRepository) : ViewModel() {
                     Log.d(TAG, "Old covers directory deleted: $deleted at ${coversDir.absolutePath}")
                 }
 
-                // Розархівовуємо ZIP-архів безпосередньо в кореневу папку даних додатку.
                 Log.d(TAG, "Unzipping archive...")
                 context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
                     ZipInputStream(inputStream).use { zis ->
@@ -158,12 +153,10 @@ class BackupViewModel(private val repository: BookRepository) : ViewModel() {
                             val newFile = File(appDataDir, zipEntry.name)
                             Log.d(TAG, "Processing zip entry: ${zipEntry.name} -> ${newFile.absolutePath}")
 
-                            // Захист від уразливості "Zip Slip".
                             if (!newFile.canonicalPath.startsWith(appDataDir.canonicalPath)) {
                                 throw SecurityException("Zip Slip vulnerability detected!")
                             }
 
-                            // Створюємо папки або файли залежно від типу запису в архіві.
                             if (zipEntry.isDirectory) {
                                 newFile.mkdirs()
                             } else {
@@ -179,7 +172,6 @@ class BackupViewModel(private val repository: BookRepository) : ViewModel() {
                 }
                 Log.d(TAG, "Unzipping complete.")
 
-                // Перевірка, чи файл бази даних успішно відновлено.
                 val restoredDbFile = File(appDataDir, "databases/books_database")
                 if (restoredDbFile.exists()) {
                     Log.d(TAG, "SUCCESS! DB file exists at ${restoredDbFile.absolutePath} after unzip. Size: ${restoredDbFile.length()} bytes.")
@@ -193,11 +185,6 @@ class BackupViewModel(private val repository: BookRepository) : ViewModel() {
             } catch (e: Exception) {
                 Log.e(TAG, "--- IMPORT FAILED ---", e)
                 _importStatus.value = ImportStatus.FAILED
-            } finally {
-                // Незалежно від результату, переініціалізуємо БД, щоб додаток міг продовжити роботу.
-                Log.d(TAG, "Re-initializing database...")
-                app.reinitializeDatabase()
-                Log.d(TAG, "Database re-initialized.")
             }
         }
     }

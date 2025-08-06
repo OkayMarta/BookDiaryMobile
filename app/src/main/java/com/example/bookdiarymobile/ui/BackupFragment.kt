@@ -18,16 +18,16 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@AndroidEntryPoint
 class BackupFragment : Fragment(R.layout.fragment_backup) {
 
-    private val viewModel: BackupViewModel by viewModels {
-        ViewModelFactory((activity?.application as BookApplication).repository)
-    }
+    private val viewModel: BackupViewModel by viewModels()
 
     private var progressDialog: Dialog? = null
 

@@ -3,6 +3,7 @@ package com.example.bookdiarymobile.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookdiarymobile.data.BookRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import java.util.Calendar
+import javax.inject.Inject
 
 // Data-клас для зберігання обраного періоду
 data class SelectedPeriod(val year: Int, val month: Int)
@@ -23,7 +25,8 @@ data class StatsUiState(
     val isLoading: Boolean = true
 )
 
-class StatsViewModel(repository: BookRepository) : ViewModel() {
+@HiltViewModel
+class StatsViewModel @Inject constructor(repository: BookRepository) : ViewModel() {
 
     // Потік, що зберігає обраний користувачем період (рік та місяць).
     // Ініціалізуємо його поточним місяцем та роком.

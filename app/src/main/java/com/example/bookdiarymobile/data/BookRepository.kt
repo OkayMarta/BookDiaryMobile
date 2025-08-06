@@ -3,13 +3,16 @@ package com.example.bookdiarymobile.data
 import androidx.sqlite.db.SimpleSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Клас-репозиторій, що є єдиним джерелом даних для додатку.
  * Він приховує деталі реалізації джерел даних (у цьому випадку, робота з базою даних Room через BookDao)
  * і надає зручний API для ViewModel.
  */
-class BookRepository(private val bookDao: BookDao) {
+@Singleton // Вказує Hilt, що цей клас має бути синглтоном
+class BookRepository @Inject constructor(private val bookDao: BookDao) {
 
     /**
      * Надає потік (Flow) зі списком усіх прочитаних книг.

@@ -24,6 +24,7 @@ import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookStatus
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
@@ -31,18 +32,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@AndroidEntryPoint
 class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
 
     private val args: BookDetailFragmentArgs by navArgs()
-    private val viewModel: BookDetailViewModel by viewModels {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repository = (activity?.application as BookApplication).repository
-                @Suppress("UNCHECKED_CAST")
-                return BookDetailViewModel(repository, args.bookId) as T
-            }
-        }
-    }
+    private val viewModel: BookDetailViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

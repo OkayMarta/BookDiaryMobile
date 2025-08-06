@@ -35,6 +35,7 @@ import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookStatus
 import com.google.android.material.textfield.TextInputEditText
 import com.yalantis.ucrop.UCrop
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -44,23 +45,11 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
+@AndroidEntryPoint
 class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
 
     private val navArgs: AddEditBookFragmentArgs by navArgs()
-    private val viewModel: AddEditBookViewModel by viewModels {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repository = (requireActivity().application as BookApplication).repository
-                val bookId = navArgs.bookId
-                val statusString = navArgs.bookStatus
-                val bookStatus = statusString?.let { BookStatus.valueOf(it) }
-                val isTransitioning = navArgs.isTransitioningToRead
-
-                @Suppress("UNCHECKED_CAST")
-                return AddEditBookViewModel(repository, bookId, bookStatus, isTransitioning) as T
-            }
-        }
-    }
+    private val viewModel: AddEditBookViewModel by viewModels()
 
     private var selectedImageUri: Uri? = null
     private var currentCoverPath: String? = null

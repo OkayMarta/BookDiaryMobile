@@ -15,7 +15,9 @@ import androidx.navigation.fragment.navArgs
 import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.SortOrder
 import com.google.android.material.divider.MaterialDivider
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SortOptionsFragment : Fragment(R.layout.fragment_sort_options) {
 
     private val args: SortOptionsFragmentArgs by navArgs()

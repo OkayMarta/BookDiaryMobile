@@ -1,25 +1,32 @@
 package com.example.bookdiarymobile.ui
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookRepository
 import com.example.bookdiarymobile.data.BookStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
 
 /**
  * ViewModel для екрану додавання/редагування книги.
  * Відповідає за завантаження даних для редагування та збереження змін у репозиторії.
  */
-class AddEditBookViewModel(
+@HiltViewModel
+class AddEditBookViewModel @Inject constructor(
     private val repository: BookRepository,
-    private val bookId: Int,                 // ID книги для редагування. -1 означає створення нової книги.
-    private val bookStatusForNew: BookStatus?, // Статус, який присвоюється новій книзі (READ або TO_READ).
-    private val isTransitioningToRead: Boolean
+    savedStateHandle: SavedStateHandle // Hilt автоматично надасть цей об'єкт
 ) : ViewModel() {
+
+    // Отримуємо аргументи з SavedStateHandle
+    private val bookId: Int = savedStateHandle.get<Int>("book_id") ?: -1
+    private val bookStatusForNew: BookStatus? = savedStateHandle.get<String>("book_status")?.let { BookStatus.valueOf(it) }
+    private val isTransitioningToRead: Boolean = savedStateHandle.get<Boolean>("is_transitioning_to_read") ?: false
 
     /**
      * StateFlow, що зберігає стан (дані) книги, яка редагується.

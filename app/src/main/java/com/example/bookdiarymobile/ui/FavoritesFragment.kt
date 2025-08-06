@@ -60,7 +60,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         // Запускаємо корутину для спостереження за змінами даних у ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.favoriteBooks.collect { books ->
+                viewModel.books.collect { books ->
                     if (books.isEmpty()) {
                         recyclerView.visibility = View.GONE
                         emptyStateTextView.visibility = View.VISIBLE

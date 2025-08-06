@@ -57,7 +57,7 @@ class ReadFragment : Fragment(R.layout.fragment_read) {
         // Код для спостереження за даними залишається без змін
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.readBooks.collect { books ->
+                viewModel.books.collect { books ->
                     if (books.isEmpty()) {
                         recyclerView.visibility = View.GONE
                         emptyStateTextView.visibility = View.VISIBLE

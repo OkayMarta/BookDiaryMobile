@@ -54,7 +54,7 @@ class ToReadFragment : Fragment(R.layout.fragment_to_read) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.toReadBooks.collect { books ->
+                viewModel.books.collect { books ->
                     if (books.isEmpty()) {
                         recyclerView.visibility = View.GONE
                         emptyStateTextView.visibility = View.VISIBLE

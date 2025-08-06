@@ -2,6 +2,7 @@ package com.example.bookdiarymobile.ui
 
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.os.bundleOf
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private var toolbarTitleTextView: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,23 +31,19 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
+        toolbarTitleTextView = findViewById(R.id.toolbar_title_text)
+
         val bottomNavView = findViewById<BottomNavigationView>(R.id.bottom_nav_view)
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // --- 1. СТВОРЮЄМО AppBarConfiguration ---
-        // Перераховуємо тут ID всіх фрагментів з нижнього меню.
-        // Це "скаже" системі, що вони є екранами верхнього рівня.
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.readFragment, R.id.favoritesFragment, R.id.toReadFragment,
                 R.id.backupFragment, R.id.statsFragment
             )
         )
-        // --- КІНЕЦЬ НОВОГО БЛОКУ ---
-
-        // 2. Передаємо appBarConfiguration в метод налаштування
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         bottomNavView.setupWithNavController(navController)
@@ -66,8 +64,6 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val isTopLevelDestination = appBarConfiguration.topLevelDestinations.contains(destination.id)
 
-            // Ховаємо нижнє меню та кнопку FAB на екранах, які не є головними
-            // (окрім випадків, де FAB потрібна)
             if (!isTopLevelDestination || destination.id == R.id.addEditBookFragment) {
                 bottomNavView.visibility = View.GONE
             } else {
@@ -78,11 +74,14 @@ class MainActivity : AppCompatActivity() {
                 R.id.readFragment, R.id.toReadFragment -> fab.visibility = View.VISIBLE
                 else -> fab.visibility = View.GONE
             }
+
+            if (destination.id != R.id.bookDetailFragment) {
+                toolbarTitleTextView?.text = "Book Diary"
+            }
         }
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        // 3. Також використовуємо appBarConfiguration тут
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -49,12 +50,19 @@ class BookDetailFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.book.collectLatest { book ->
-                    if (book.id == -1) return@collectLatest // Ігноруємо початковий стан
+                    if (book.id == -1) return@collectLatest
 
                     // === 1. Встановлюємо заголовок в Toolbar ===
-                    val activity = requireActivity() as AppCompatActivity
-                    val shortTitle = if (book.title.length > 15) "${book.title.take(15)}..." else book.title
-                    activity.supportActionBar?.title = shortTitle
+                    val activity = requireActivity()
+                    val toolbarTitleTextView = activity.findViewById<TextView>(R.id.toolbar_title_text)
+                    val toolbarTitle = if (book.title.length > 20) {
+                        "${book.title.take(20)}..."
+                    } else {
+                        book.title
+                    }
+                    // РІШЕННЯ 2: Використовуємо безпечний виклик `?.`
+                    toolbarTitleTextView?.text = toolbarTitle
+
 
                     // === 2. Заповнюємо дані через binding ===
                     binding.detailTextTitle.text = book.title
@@ -154,18 +162,6 @@ class BookDetailFragment : Fragment() {
                 findNavController().popBackStack()
             }
             .show()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.title = viewModel.book.value.let { book ->
-            if (book.id != -1 && book.title.length > 15) "${book.title.take(15)}..." else if (book.id != -1) book.title else "Book Details"
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        (activity as? AppCompatActivity)?.supportActionBar?.title = "Book Diary"
     }
 
     override fun onDestroyView() {

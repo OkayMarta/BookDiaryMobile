@@ -9,20 +9,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
 import com.example.bookdiarymobile.R
-import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.SortOrder
-import com.example.bookdiarymobile.databinding.FragmentFavoritesBinding
-import com.example.bookdiarymobile.databinding.FragmentReadBinding
-import com.example.bookdiarymobile.databinding.FragmentToReadBinding
 import com.example.bookdiarymobile.utils.getSerializableCompat
 import kotlinx.coroutines.launch
 

@@ -1,120 +1,36 @@
 package com.example.bookdiarymobile.ui
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.example.bookdiarymobile.R
-import com.example.bookdiarymobile.data.SortOrder
 import com.example.bookdiarymobile.databinding.FragmentToReadBinding
-import com.example.bookdiarymobile.utils.getSerializableCompat
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ToReadFragment : Fragment() {
+class ToReadFragment : BaseBookListFragment<FragmentToReadBinding, ToReadViewModel>(
+    FragmentToReadBinding::inflate
+) {
+    override val viewModel: ToReadViewModel by viewModels()
 
-    private var _binding: FragmentToReadBinding? = null
-    private val binding get() = _binding!!
-
-    private val viewModel: ToReadViewModel by viewModels()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentToReadBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun setupUI(adapter: BookAdapter) {
+        binding.recyclerViewBooks.adapter = adapter
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val adapter = BookAdapter { clickedBook ->
-            val action = ToReadFragmentDirections.actionToReadFragmentToBookDetailFragment(
-                bookId = clickedBook.id
-            )
-            findNavController().navigate(action)
-        }
-
-        binding.recyclerViewToRead.adapter = adapter
-
-        setFragmentResultListener("SORT_REQUEST") { _, bundle ->
-            val newSortOrder = bundle.getSerializableCompat<SortOrder>("SORT_ORDER")
-            newSortOrder?.let { viewModel.applySortOrder(it) }
-        }
-
-        setupMenu()
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.books.collect { books ->
-                    // Використовуємо isVisible для керування видимістю
-                    binding.recyclerViewToRead.isVisible = books.isNotEmpty()
-                    binding.textViewEmptyStateToRead.isVisible = books.isEmpty()
-
-                    adapter.submitList(books)
-                }
-            }
-        }
+    override fun updateEmptyState(isEmpty: Boolean) {
+        binding.textViewEmptyState.isVisible = isEmpty
+        binding.recyclerViewBooks.isVisible = !isEmpty
     }
 
-    private fun setupMenu() {
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.main_menu, menu)
-
-                val searchItem = menu.findItem(R.id.action_search)
-                val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
-
-                val currentQuery = viewModel.searchQuery.value
-                if (currentQuery.isNotEmpty()) {
-                    searchItem.expandActionView()
-                    searchView.setQuery(currentQuery, false)
-                }
-
-                searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return true
-                    }
-
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        viewModel.applySearchQuery(newText.orEmpty())
-                        return true
-                    }
-                })
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_sort -> {
-                        val action = ToReadFragmentDirections.actionToReadFragmentToSortOptionsFragment(
-                            currentSortOrder = viewModel.sortOrder.value,
-                            sourceScreen = "TO_READ"
-                        )
-                        findNavController().navigate(action)
-                        true
-                    }
-                    else -> false
-                }
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    override fun navigateToBookDetail(bookId: Int) {
+        val action = ToReadFragmentDirections.actionToReadFragmentToBookDetailFragment(bookId)
+        findNavController().navigate(action)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null // Очищуємо binding
+    override fun navigateToSortOptions() {
+        val action = ToReadFragmentDirections.actionToReadFragmentToSortOptionsFragment(
+            currentSortOrder = viewModel.sortOrder.value,
+            sourceScreen = "TO_READ"
+        )
+        findNavController().navigate(action)
     }
 }

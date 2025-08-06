@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Дозволяє доступ до кешу, де буде жити результат UCrop -->
+    <cache-path name="cropped_images" path="." />
+    <!-- Дозволяє доступ до папки, де будемо тимчасово зберігати фото з камери -->
+    <external-files-path name="my_images" path="Pictures" />
+</paths>

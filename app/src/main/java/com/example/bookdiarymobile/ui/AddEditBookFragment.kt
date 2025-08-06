@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -32,6 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -51,14 +54,41 @@ class AddEditBookFragment : Fragment() {
     private var currentCoverPath: String? = null
     private var selectedDateInMillis: Long? = null
 
+    // Змінна для зберігання тимчасового URI фото з камери
+    private var cameraPhotoUri: Uri? = null
+
+    // Enum для визначення, яку дію виконати після запиту дозволів
+    private enum class PendingAction { NONE, SELECT_FROM_GALLERY, TAKE_PHOTO }
+    private var pendingAction = PendingAction.NONE
+
+    // Запитуємо дозволи для галереї та камери
     private val requestPermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            val allPermissionsGranted = permissions.entries.all { it.value }
-            if (allPermissionsGranted) {
-                openGalleryLauncher.launch("image/*")
-            } else {
-                Toast.makeText(requireContext(), "Permissions required to select an image.", Toast.LENGTH_LONG).show()
+            // Перевіряємо, чи всі *необхідні* для конкретної дії дозволи надано
+            val isGranted = when (pendingAction) {
+                PendingAction.TAKE_PHOTO -> permissions[Manifest.permission.CAMERA] ?: false
+                PendingAction.SELECT_FROM_GALLERY -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: false
+                    } else {
+                        permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false
+                    }
+                }
+                else -> false
             }
+
+            if (isGranted) {
+                // Якщо дозволи надано, виконуємо відкладену дію
+                when (pendingAction) {
+                    PendingAction.SELECT_FROM_GALLERY -> openGalleryLauncher.launch("image/*")
+                    PendingAction.TAKE_PHOTO -> launchCamera()
+                    else -> {}
+                }
+            } else {
+                Toast.makeText(requireContext(), "Permissions are required to continue.", Toast.LENGTH_LONG).show()
+            }
+            // Скидаємо дію
+            pendingAction = PendingAction.NONE
         }
 
     private val openGalleryLauncher =
@@ -68,12 +98,23 @@ class AddEditBookFragment : Fragment() {
             }
         }
 
+    // Лаунчер для запуску камери
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            // Якщо фото успішно зроблено, передаємо його URI в UCrop
+            cameraPhotoUri?.let { launchUCrop(it) }
+        } else {
+            Toast.makeText(requireContext(), "Failed to capture image.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private val cropImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val resultUri = result.data?.let { UCrop.getOutput(it) }
             resultUri?.let {
                 selectedImageUri = it
-                // Перевіряємо, чи binding не null, хоча в цьому життєвому циклі він має бути доступний.
                 _binding?.let { b -> Glide.with(this).load(it).into(b.imageViewAddCover) }
             }
         } else if (result.resultCode == UCrop.RESULT_ERROR) {
@@ -102,12 +143,16 @@ class AddEditBookFragment : Fragment() {
             binding.spinnerGenre.adapter = adapter
         }
 
-        binding.buttonAddFromGallery.setOnClickListener { checkAndRequestPermissions() }
-        binding.buttonAddFromCamera.setOnClickListener {
-            checkAndRequestPermissions()
-            Toast.makeText(requireContext(), "Camera feature coming soon!", Toast.LENGTH_SHORT).show()
-        }
         binding.editTextDateRead.setOnClickListener { showDatePickerDialog(binding.editTextDateRead) }
+
+        binding.buttonAddFromGallery.setOnClickListener {
+            pendingAction = PendingAction.SELECT_FROM_GALLERY
+            checkAndRequestPermissions()
+        }
+        binding.buttonAddFromCamera.setOnClickListener {
+            pendingAction = PendingAction.TAKE_PHOTO
+            checkAndRequestPermissions()
+        }
 
         val shouldSetDefaultDate = (navArgs.isTransitioningToRead || navArgs.bookStatus == "READ")
         if (shouldSetDefaultDate && savedInstanceState == null) {
@@ -198,22 +243,51 @@ class AddEditBookFragment : Fragment() {
     }
 
     private fun checkAndRequestPermissions() {
-        val permissionsToRequest: Array<String> =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+        val permissionsToRequest = when (pendingAction) {
+            PendingAction.TAKE_PHOTO -> listOf(Manifest.permission.CAMERA)
+            PendingAction.SELECT_FROM_GALLERY -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listOf(Manifest.permission.READ_MEDIA_IMAGES)
             } else {
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
+            else -> return
+        }
 
-        val allPermissionsGranted = permissionsToRequest.all {
+        val permissionsGranted = permissionsToRequest.all {
             ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
         }
 
-        if (allPermissionsGranted) {
-            openGalleryLauncher.launch("image/*")
+        if (permissionsGranted) {
+            when (pendingAction) {
+                PendingAction.SELECT_FROM_GALLERY -> openGalleryLauncher.launch("image/*")
+                PendingAction.TAKE_PHOTO -> launchCamera()
+                else -> {}
+            }
         } else {
-            requestPermissionsLauncher.launch(permissionsToRequest)
+            requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
         }
+    }
+
+    // Функція для запуску камери
+    private fun launchCamera() {
+        createImageFileUri()?.let { uri ->
+            cameraPhotoUri = uri
+            takePictureLauncher.launch(uri)
+        }
+    }
+
+    // Функція для створення файлу та його URI
+    @Throws(IOException::class)
+    private fun createImageFileUri(): Uri? {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir: File? = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val file = File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        )
+        val authority = "${requireContext().packageName}.fileprovider"
+        return FileProvider.getUriForFile(requireContext(), authority, file)
     }
 
     private fun showDatePickerDialog(dateEditText: TextInputEditText) {

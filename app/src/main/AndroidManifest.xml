@@ -14,6 +14,16 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
+    <!-- Дозвіл на використання камери -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Повідомляємо, що камера є необхідною функцією.
+     android:required="false" означає, що додаток можна встановити
+     на пристрої без камери, але функціонал буде недоступний. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <application
         android:name=".BookApplication"
         android:allowBackup="true"
@@ -38,6 +48,17 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="fullSensor"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
+        <!-- FileProvider для безпечного обміну файлами -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

@@ -3,24 +3,25 @@ package com.example.bookdiarymobile.ui
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.NumberPicker
-import android.widget.TextView
-import androidx.core.view.isVisible
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
+import com.example.bookdiarymobile.databinding.DialogMonthYearPickerBinding
+import com.example.bookdiarymobile.databinding.FragmentStatsBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @AndroidEntryPoint
-class StatsFragment : Fragment(R.layout.fragment_stats) {
+class StatsFragment : Fragment() {
+
+    private var _binding: FragmentStatsBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: StatsViewModel by viewModels()
 
@@ -28,22 +29,21 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Завантажуємо назви місяців один раз при створенні фрагмента
         months = resources.getStringArray(R.array.months)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentStatsBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val periodSelector = view.findViewById<LinearLayout>(R.id.period_selector)
-        val selectedPeriodTextView = view.findViewById<TextView>(R.id.text_selected_period)
-        val monthLabel = view.findViewById<TextView>(R.id.label_stats_month)
-        val monthStats = view.findViewById<TextView>(R.id.text_stats_month)
-        val yearLabel = view.findViewById<TextView>(R.id.label_stats_year)
-        val yearStats = view.findViewById<TextView>(R.id.text_stats_year)
-        val totalStats = view.findViewById<TextView>(R.id.text_stats_total)
-
-        periodSelector.setOnClickListener {
+        binding.periodSelector.setOnClickListener {
             showMonthYearPickerDialog()
         }
 
@@ -52,48 +52,47 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
                 viewModel.stats.collect { state ->
                     if (state.isLoading) return@collect
 
-                    // Оновлюємо текст обраного періоду
                     val period = state.selectedPeriod
-                    selectedPeriodTextView.text = "${months[period.month]} ${period.year}"
-
-                    // Оновлюємо лейбли
-                    monthLabel.text = getString(R.string.stats_in_month_year, months[period.month], period.year)
-                    yearLabel.text = getString(R.string.stats_in_year, period.year)
-
-                    // Оновлюємо значення статистики
-                    monthStats.text = state.booksInMonth.toString()
-                    yearStats.text = state.booksInYear.toString()
-                    totalStats.text = state.totalBooks.toString()
+                    binding.textSelectedPeriod.text = "${months[period.month]} ${period.year}"
+                    binding.labelStatsMonth.text = getString(R.string.stats_in_month_year, months[period.month], period.year)
+                    binding.labelStatsYear.text = getString(R.string.stats_in_year, period.year)
+                    binding.textStatsMonth.text = state.booksInMonth.toString()
+                    binding.textStatsYear.text = state.booksInYear.toString()
+                    binding.textStatsTotal.text = state.totalBooks.toString()
                 }
             }
         }
     }
 
     private fun showMonthYearPickerDialog() {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_month_year_picker, null)
-        val monthPicker = dialogView.findViewById<NumberPicker>(R.id.picker_month)
-        val yearPicker = dialogView.findViewById<NumberPicker>(R.id.picker_year)
+        // Використовуємо View Binding для макету діалогового вікна
+        val dialogBinding = DialogMonthYearPickerBinding.inflate(LayoutInflater.from(requireContext()))
         val currentPeriod = viewModel.stats.value.selectedPeriod
 
         // Налаштовуємо вибір місяця
-        monthPicker.minValue = 0
-        monthPicker.maxValue = months.size - 1
-        monthPicker.displayedValues = months
-        monthPicker.value = currentPeriod.month
+        dialogBinding.pickerMonth.minValue = 0
+        dialogBinding.pickerMonth.maxValue = months.size - 1
+        dialogBinding.pickerMonth.displayedValues = months
+        dialogBinding.pickerMonth.value = currentPeriod.month
 
         // Налаштовуємо вибір року
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        yearPicker.minValue = 2000
-        yearPicker.maxValue = currentYear
-        yearPicker.value = currentPeriod.year
+        dialogBinding.pickerYear.minValue = 2000
+        dialogBinding.pickerYear.maxValue = currentYear
+        dialogBinding.pickerYear.value = currentPeriod.year
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.dialog_select_period_title))
-            .setView(dialogView)
+            .setView(dialogBinding.root) // Передаємо кореневий елемент binding
             .setPositiveButton(getString(R.string.dialog_ok)) { _, _ ->
-                viewModel.updateSelectedPeriod(yearPicker.value, monthPicker.value)
+                viewModel.updateSelectedPeriod(dialogBinding.pickerYear.value, dialogBinding.pickerMonth.value)
             }
             .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null // Очищуємо binding
     }
 }

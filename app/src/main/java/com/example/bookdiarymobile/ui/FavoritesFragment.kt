@@ -1,12 +1,14 @@
 package com.example.bookdiarymobile.ui
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
+import android.view.ViewGroup
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -14,40 +16,41 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.RecyclerView
-import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.SortOrder
+import com.example.bookdiarymobile.databinding.FragmentFavoritesBinding
 import com.example.bookdiarymobile.utils.getSerializableCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
+class FavoritesFragment : Fragment() {
+
+    private var _binding: FragmentFavoritesBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: FavoritesViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentFavoritesBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Знаходимо RecyclerView у нашому layout-файлі
-        val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view_favorites)
-        val emptyStateTextView: TextView = view.findViewById(R.id.text_view_empty_state_favorites)
-
-        // Створюємо екземпляр адаптера. Він універсальний і підходить для всіх списків.
-        // В обробник кліку передаємо логіку навігації.
         val adapter = BookAdapter { clickedBook ->
-            // Створюємо "дію" для переходу, використовуючи автозгенерований клас FavoritesFragmentDirections.
-            // Передаємо ID книги, на яку натиснули.
             val action = FavoritesFragmentDirections.actionFavoritesFragmentToBookDetailFragment(
                 bookId = clickedBook.id
             )
-            // Виконуємо перехід на екран деталей книги
             findNavController().navigate(action)
         }
 
-        // Встановлюємо адаптер для RecyclerView
-        recyclerView.adapter = adapter
+        // Використовуємо binding для доступу до RecyclerView
+        binding.recyclerViewFavorites.adapter = adapter
 
         setFragmentResultListener("SORT_REQUEST") { _, bundle ->
             val newSortOrder = bundle.getSerializableCompat<SortOrder>("SORT_ORDER")
@@ -56,17 +59,13 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
         setupMenu()
 
-        // Запускаємо корутину для спостереження за змінами даних у ViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.books.collect { books ->
-                    if (books.isEmpty()) {
-                        recyclerView.visibility = View.GONE
-                        emptyStateTextView.visibility = View.VISIBLE
-                    } else {
-                        recyclerView.visibility = View.VISIBLE
-                        emptyStateTextView.visibility = View.GONE
-                    }
+                    // Використовуємо isVisible для керування видимістю
+                    binding.recyclerViewFavorites.isVisible = books.isNotEmpty()
+                    binding.textViewEmptyStateFavorites.isVisible = books.isEmpty()
+
                     adapter.submitList(books)
                 }
             }
@@ -81,7 +80,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 val searchItem = menu.findItem(R.id.action_search)
                 val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
 
-                // Відновлюємо текст пошуку, якщо він був
                 val currentQuery = viewModel.searchQuery.value
                 if (currentQuery.isNotEmpty()) {
                     searchItem.expandActionView()
@@ -90,7 +88,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
                 searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
                     override fun onQueryTextSubmit(query: String?): Boolean {
-                        return true // Дія не потрібна, бо ми реагуємо на кожну зміну
+                        return true
                     }
 
                     override fun onQueryTextChange(newText: String?): Boolean {
@@ -114,5 +112,10 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null // Очищуємо binding
     }
 }

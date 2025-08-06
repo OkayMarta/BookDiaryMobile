@@ -1,12 +1,14 @@
 package com.example.bookdiarymobile.ui
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
+import android.view.ViewGroup
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -14,36 +16,40 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.RecyclerView
-import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
 import com.example.bookdiarymobile.data.SortOrder
+import com.example.bookdiarymobile.databinding.FragmentToReadBinding
 import com.example.bookdiarymobile.utils.getSerializableCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ToReadFragment : Fragment(R.layout.fragment_to_read) {
+class ToReadFragment : Fragment() {
+
+    private var _binding: FragmentToReadBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: ToReadViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentToReadBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view_to_read)
-        val emptyStateTextView: TextView = view.findViewById(R.id.text_view_empty_state_to_read)
-
-        // Створюємо адаптер, передаючи йому обробник кліку
         val adapter = BookAdapter { clickedBook ->
-            // Створюємо дію для переходу, використовуючи згенерований клас ToReadFragmentDirections
             val action = ToReadFragmentDirections.actionToReadFragmentToBookDetailFragment(
                 bookId = clickedBook.id
             )
-            // Виконуємо перехід
             findNavController().navigate(action)
         }
 
-        recyclerView.adapter = adapter
+        binding.recyclerViewToRead.adapter = adapter
 
         setFragmentResultListener("SORT_REQUEST") { _, bundle ->
             val newSortOrder = bundle.getSerializableCompat<SortOrder>("SORT_ORDER")
@@ -55,13 +61,10 @@ class ToReadFragment : Fragment(R.layout.fragment_to_read) {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.books.collect { books ->
-                    if (books.isEmpty()) {
-                        recyclerView.visibility = View.GONE
-                        emptyStateTextView.visibility = View.VISIBLE
-                    } else {
-                        recyclerView.visibility = View.VISIBLE
-                        emptyStateTextView.visibility = View.GONE
-                    }
+                    // Використовуємо isVisible для керування видимістю
+                    binding.recyclerViewToRead.isVisible = books.isNotEmpty()
+                    binding.textViewEmptyStateToRead.isVisible = books.isEmpty()
+
                     adapter.submitList(books)
                 }
             }
@@ -76,7 +79,6 @@ class ToReadFragment : Fragment(R.layout.fragment_to_read) {
                 val searchItem = menu.findItem(R.id.action_search)
                 val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
 
-                // Відновлюємо текст пошуку, якщо він був
                 val currentQuery = viewModel.searchQuery.value
                 if (currentQuery.isNotEmpty()) {
                     searchItem.expandActionView()
@@ -85,7 +87,7 @@ class ToReadFragment : Fragment(R.layout.fragment_to_read) {
 
                 searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
                     override fun onQueryTextSubmit(query: String?): Boolean {
-                        return true // Дія не потрібна, бо ми реагуємо на кожну зміну
+                        return true
                     }
 
                     override fun onQueryTextChange(newText: String?): Boolean {
@@ -109,5 +111,10 @@ class ToReadFragment : Fragment(R.layout.fragment_to_read) {
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null // Очищуємо binding
     }
 }

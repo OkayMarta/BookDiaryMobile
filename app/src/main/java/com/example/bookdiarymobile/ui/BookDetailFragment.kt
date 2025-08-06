@@ -1,62 +1,50 @@
 package com.example.bookdiarymobile.ui
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
-import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
-import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookStatus
+import com.example.bookdiarymobile.databinding.FragmentBookDetailBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @AndroidEntryPoint
-class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
+class BookDetailFragment : Fragment() {
+
+    private var _binding: FragmentBookDetailBinding? = null
+    private val binding get() = _binding!!
 
     private val args: BookDetailFragmentArgs by navArgs()
     private val viewModel: BookDetailViewModel by viewModels()
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentBookDetailBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Знаходимо всі UI-елементи
-        val titleTextView = view.findViewById<TextView>(R.id.detail_text_title)
-        val authorTextView = view.findViewById<TextView>(R.id.detail_text_author)
-        val genreTextView = view.findViewById<TextView>(R.id.detail_text_genre)
-        val ratingTextView = view.findViewById<TextView>(R.id.detail_text_rating)
-        val dateTextView = view.findViewById<TextView>(R.id.detail_text_date)
-        val descriptionTextView = view.findViewById<TextView>(R.id.detail_text_description)
-        val coverImageView = view.findViewById<ImageView>(R.id.detail_image_cover)
-
-        val ratingLabel = view.findViewById<TextView>(R.id.label_rating)
-        val ratingStarIcon = view.findViewById<ImageView>(R.id.icon_rating_star)
-
-        val favoriteButton = view.findViewById<ImageButton>(R.id.button_favorite)
-        val editButton = view.findViewById<ImageButton>(R.id.button_edit)
-        val deleteButton = view.findViewById<ImageButton>(R.id.button_delete)
-        val moveToReadButton = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.button_move_to_read)
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -68,54 +56,54 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
                     val shortTitle = if (book.title.length > 15) "${book.title.take(15)}..." else book.title
                     activity.supportActionBar?.title = shortTitle
 
-                    // === 2. Заповнюємо дані ===
-                    titleTextView.text = book.title
-                    authorTextView.text = book.author
-                    genreTextView.text = book.genre
+                    // === 2. Заповнюємо дані через binding ===
+                    binding.detailTextTitle.text = book.title
+                    binding.detailTextAuthor.text = book.author
+                    binding.detailTextGenre.text = book.genre
 
-                    descriptionTextView.text = book.description
-                    descriptionTextView.isVisible = book.description.isNotBlank()
+                    binding.detailTextDescription.text = book.description
+                    binding.detailTextDescription.isVisible = book.description.isNotBlank()
 
                     // === 3. Логіка для статусів READ / TO_READ ===
                     if (book.status == BookStatus.READ) {
                         // Показуємо елементи для прочитаних книг
-                        favoriteButton.isVisible = true
-                        ratingLabel.isVisible = true
-                        ratingStarIcon.isVisible = true
-                        ratingTextView.isVisible = true
-                        moveToReadButton.isVisible = false
+                        binding.buttonFavorite.isVisible = true
+                        binding.labelRating.isVisible = true
+                        binding.iconRatingStar.isVisible = true
+                        binding.detailTextRating.isVisible = true
+                        binding.buttonMoveToRead.isVisible = false
 
                         book.rating?.let { ratingValue ->
-                            ratingTextView.text = ratingValue.toString()
+                            binding.detailTextRating.text = ratingValue.toString()
 
                             when (ratingValue) {
-                                5, 4 -> ratingStarIcon.setImageResource(R.drawable.ic_star_filled)
-                                3 -> ratingStarIcon.setImageResource(R.drawable.ic_star_half)
-                                else -> ratingStarIcon.setImageResource(R.drawable.ic_star_outline)
+                                5, 4 -> binding.iconRatingStar.setImageResource(R.drawable.ic_star_filled)
+                                3 -> binding.iconRatingStar.setImageResource(R.drawable.ic_star_half)
+                                else -> binding.iconRatingStar.setImageResource(R.drawable.ic_star_outline)
                             }
                         }
 
                         book.dateRead?.let {
-                            dateTextView.text = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
+                            binding.detailTextDate.text = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(it))
                         }
 
-                        // Оновлюємо стан кнопки "вибране" (приклад з візуалізацією)
-                        favoriteButton.isSelected = book.isFavorite
+                        // Оновлюємо стан кнопки "вибране"
+                        binding.buttonFavorite.isSelected = book.isFavorite
                         val tint = if (book.isFavorite) ContextCompat.getColor(requireContext(), R.color.text_primary) else ContextCompat.getColor(requireContext(), R.color.text_secondary)
-                        favoriteButton.setColorFilter(tint)
+                        binding.buttonFavorite.setColorFilter(tint)
 
                     } else { // TO_READ
                         // Ховаємо елементи для прочитаних книг
-                        favoriteButton.isVisible = false
-                        ratingLabel.isVisible = false
-                        ratingStarIcon.isVisible = false
-                        ratingTextView.isVisible = false
+                        binding.buttonFavorite.isVisible = false
+                        binding.labelRating.isVisible = false
+                        binding.iconRatingStar.isVisible = false
+                        binding.detailTextRating.isVisible = false
 
                         // Показуємо кнопку "Прочитано"
-                        moveToReadButton.isVisible = true
+                        binding.buttonMoveToRead.isVisible = true
 
                         // Показуємо дату додавання
-                        dateTextView.text = getString(R.string.added_on_date, SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateAdded)))
+                        binding.detailTextDate.text = getString(R.string.added_on_date, SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(book.dateAdded)))
                     }
 
                     // === 4. Завантажуємо обкладинку ===
@@ -123,25 +111,25 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
                         Glide.with(this@BookDetailFragment)
                             .load(book.coverImagePath)
                             .placeholder(R.drawable.placeholder_cover)
-                            .into(coverImageView)
+                            .into(binding.detailImageCover)
                     } else {
-                        coverImageView.setImageResource(R.drawable.placeholder_cover_sharp)
+                        binding.detailImageCover.setImageResource(R.drawable.placeholder_cover_sharp)
                     }
                 }
             }
         }
 
         // Обробники натискань
-        favoriteButton.setOnClickListener { viewModel.toggleFavoriteStatus() }
-        deleteButton.setOnClickListener { showDeleteDialog() }
-        editButton.setOnClickListener { navigateToEdit() }
-        moveToReadButton.setOnClickListener {
+        binding.buttonFavorite.setOnClickListener { viewModel.toggleFavoriteStatus() }
+        binding.buttonDelete.setOnClickListener { showDeleteDialog() }
+        binding.buttonEdit.setOnClickListener { navigateToEdit() }
+        binding.buttonMoveToRead.setOnClickListener {
             // Переходимо на екран редагування, передаючи прапорець
             val action = BookDetailFragmentDirections
                 .actionBookDetailFragmentToAddEditBookFragment(
                     bookId = viewModel.book.value.id,
                     title = getString(R.string.title_update_read_book),
-                    isTransitioningToRead = true // <-- ПЕРЕДАЄМО ПРАПОРЕЦЬ
+                    isTransitioningToRead = true
                 )
             findNavController().navigate(action)
         }
@@ -170,7 +158,6 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
 
     override fun onResume() {
         super.onResume()
-        // Встановлюємо заголовок при поверненні на екран
         (activity as? AppCompatActivity)?.supportActionBar?.title = viewModel.book.value.let { book ->
             if (book.id != -1 && book.title.length > 15) "${book.title.take(15)}..." else if (book.id != -1) book.title else "Book Details"
         }
@@ -178,7 +165,11 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
 
     override fun onPause() {
         super.onPause()
-        // Повертаємо головний заголовок при виході з екрану
         (activity as? AppCompatActivity)?.supportActionBar?.title = "Book Diary"
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null // Очищуємо binding
     }
 }

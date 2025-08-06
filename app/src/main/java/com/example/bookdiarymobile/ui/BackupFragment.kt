@@ -6,17 +6,16 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
+import com.example.bookdiarymobile.databinding.FragmentBackupBinding
+import com.example.bookdiarymobile.databinding.DialogProgressBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -25,7 +24,10 @@ import java.util.Date
 import java.util.Locale
 
 @AndroidEntryPoint
-class BackupFragment : Fragment(R.layout.fragment_backup) {
+class BackupFragment : Fragment() {
+
+    private var _binding: FragmentBackupBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: BackupViewModel by viewModels()
 
@@ -41,19 +43,25 @@ class BackupFragment : Fragment(R.layout.fragment_backup) {
             uri?.let { showImportConfirmationDialog(it) }
         }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentBackupBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val exportButton = view.findViewById<Button>(R.id.button_export)
-        val importButton = view.findViewById<Button>(R.id.button_import)
-
-        exportButton.setOnClickListener {
+        // Використовуємо binding для доступу до кнопок
+        binding.buttonExport.setOnClickListener {
             val timestamp = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val fileName = "book_journal_backup_$timestamp.zip"
             createDocumentLauncher.launch(fileName)
         }
 
-        importButton.setOnClickListener {
+        binding.buttonImport.setOnClickListener {
             openDocumentLauncher.launch("application/zip")
         }
 
@@ -107,7 +115,6 @@ class BackupFragment : Fragment(R.layout.fragment_backup) {
                                 title = getString(R.string.import_success_title),
                                 message = getString(R.string.import_success_message)
                             )
-                            // Скидання статусу відбувається після натискання на кнопку в діалозі
                         }
                         ImportStatus.FAILED -> {
                             dismissProgressDialog()
@@ -125,11 +132,12 @@ class BackupFragment : Fragment(R.layout.fragment_backup) {
 
     private fun showProgressDialog(message: String) {
         if (progressDialog == null) {
-            val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_progress, null)
-            dialogView.findViewById<TextView>(R.id.text_progress_message).text = message
+            // Використовуємо View Binding для макету діалогового вікна
+            val dialogBinding = DialogProgressBinding.inflate(LayoutInflater.from(requireContext()))
+            dialogBinding.textProgressMessage.text = message
 
             progressDialog = MaterialAlertDialogBuilder(requireContext())
-                .setView(dialogView)
+                .setView(dialogBinding.root) // Передаємо кореневий елемент binding
                 .setCancelable(false)
                 .create()
         }
@@ -154,7 +162,7 @@ class BackupFragment : Fragment(R.layout.fragment_backup) {
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(getString(R.string.dialog_ok)) { _, _ ->
-                viewModel.resetImportStatus() // Скидаємо статус перед перезапуском
+                viewModel.resetImportStatus()
                 restartApp()
             }
             .setCancelable(false)
@@ -173,7 +181,7 @@ class BackupFragment : Fragment(R.layout.fragment_backup) {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Важливо, щоб уникнути витоку пам'яті, якщо фрагмент знищується під час показу діалогу
         dismissProgressDialog()
+        _binding = null // Очищуємо binding
     }
 }

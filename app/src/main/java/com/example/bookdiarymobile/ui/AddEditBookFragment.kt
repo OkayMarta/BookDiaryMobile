@@ -7,14 +7,10 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.RatingBar
-import android.widget.Spinner
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -22,17 +18,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
-import com.example.bookdiarymobile.BookApplication
 import com.example.bookdiarymobile.R
-import com.example.bookdiarymobile.data.Book
 import com.example.bookdiarymobile.data.BookStatus
+import com.example.bookdiarymobile.databinding.FragmentAddEditBookBinding
 import com.google.android.material.textfield.TextInputEditText
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,7 +39,10 @@ import java.util.Locale
 import java.util.UUID
 
 @AndroidEntryPoint
-class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
+class AddEditBookFragment : Fragment() {
+
+    private var _binding: FragmentAddEditBookBinding? = null
+    private val binding get() = _binding!!
 
     private val navArgs: AddEditBookFragmentArgs by navArgs()
     private val viewModel: AddEditBookViewModel by viewModels()
@@ -77,8 +73,8 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             val resultUri = result.data?.let { UCrop.getOutput(it) }
             resultUri?.let {
                 selectedImageUri = it
-                val coverImageView = view?.findViewById<ImageView>(R.id.image_view_add_cover)
-                coverImageView?.let { iv -> Glide.with(this).load(it).into(iv) }
+                // Перевіряємо, чи binding не null, хоча в цьому життєвому циклі він має бути доступний.
+                _binding?.let { b -> Glide.with(this).load(it).into(b.imageViewAddCover) }
             }
         } else if (result.resultCode == UCrop.RESULT_ERROR) {
             val cropError = result.data?.let { UCrop.getError(it) }
@@ -86,23 +82,16 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentAddEditBookBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Ініціалізація UI елементів
-        val titleEditText = view.findViewById<TextInputEditText>(R.id.edit_text_title)
-        val authorEditText = view.findViewById<TextInputEditText>(R.id.edit_text_author)
-        val descriptionEditText = view.findViewById<TextInputEditText>(R.id.edit_text_description)
-        val saveButton = view.findViewById<Button>(R.id.button_save)
-        val coverImageView = view.findViewById<ImageView>(R.id.image_view_add_cover)
-        val galleryButton = view.findViewById<ImageButton>(R.id.button_add_from_gallery)
-        val cameraButton = view.findViewById<ImageButton>(R.id.button_add_from_camera)
-
-        val dateLabel = view.findViewById<TextView>(R.id.label_date_read)
-        val dateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_date_read)
-        val ratingLabel = view.findViewById<TextView>(R.id.label_rating_edit)
-        val ratingBar = view.findViewById<RatingBar>(R.id.rating_bar_edit)
-        val genreSpinner = view.findViewById<Spinner>(R.id.spinner_genre)
 
         ArrayAdapter.createFromResource(
             requireContext(),
@@ -110,20 +99,20 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             android.R.layout.simple_spinner_item
         ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            genreSpinner.adapter = adapter
+            binding.spinnerGenre.adapter = adapter
         }
 
-        galleryButton.setOnClickListener { checkAndRequestPermissions() }
-        cameraButton.setOnClickListener {
+        binding.buttonAddFromGallery.setOnClickListener { checkAndRequestPermissions() }
+        binding.buttonAddFromCamera.setOnClickListener {
             checkAndRequestPermissions()
             Toast.makeText(requireContext(), "Camera feature coming soon!", Toast.LENGTH_SHORT).show()
         }
-        dateEditText.setOnClickListener { showDatePickerDialog(dateEditText) }
+        binding.editTextDateRead.setOnClickListener { showDatePickerDialog(binding.editTextDateRead) }
 
         val shouldSetDefaultDate = (navArgs.isTransitioningToRead || navArgs.bookStatus == "READ")
         if (shouldSetDefaultDate && savedInstanceState == null) {
             selectedDateInMillis = System.currentTimeMillis()
-            dateEditText.setText(formatDate(selectedDateInMillis!!))
+            binding.editTextDateRead.setText(formatDate(selectedDateInMillis!!))
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -134,40 +123,39 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
                     val statusForVisibility = book?.status ?: navArgs.bookStatus?.let { BookStatus.valueOf(it) } ?: BookStatus.TO_READ
                     val isReadMode = (statusForVisibility == BookStatus.READ || navArgs.isTransitioningToRead)
 
-                    // Керуємо видимістю полів дати та рейтингу
-                    dateLabel.isVisible = isReadMode
-                    dateEditText.isVisible = isReadMode
-                    ratingLabel.isVisible = isReadMode
-                    ratingBar.isVisible = isReadMode
+                    binding.labelDateRead.isVisible = isReadMode
+                    binding.editTextDateRead.isVisible = isReadMode
+                    binding.labelRatingEdit.isVisible = isReadMode
+                    binding.ratingBarEdit.isVisible = isReadMode
 
                     if (!isNewBook) {
                         book?.let {
                             currentCoverPath = it.coverImagePath
-                            if (titleEditText.text.toString() != it.title) titleEditText.setText(it.title)
-                            if (authorEditText.text.toString() != it.author) authorEditText.setText(it.author)
-                            if (descriptionEditText.text.toString() != it.description) descriptionEditText.setText(it.description)
+                            if (binding.editTextTitle.text.toString() != it.title) binding.editTextTitle.setText(it.title)
+                            if (binding.editTextAuthor.text.toString() != it.author) binding.editTextAuthor.setText(it.author)
+                            if (binding.editTextDescription.text.toString() != it.description) binding.editTextDescription.setText(it.description)
 
                             if (savedInstanceState != null || !shouldSetDefaultDate) {
                                 it.dateRead?.let { date ->
                                     selectedDateInMillis = date
-                                    dateEditText.setText(formatDate(date))
+                                    binding.editTextDateRead.setText(formatDate(date))
                                 }
                             }
 
                             it.rating?.let { rating ->
-                                ratingBar.rating = rating.toFloat()
+                                binding.ratingBarEdit.rating = rating.toFloat()
                             }
 
                             val genres = resources.getStringArray(R.array.book_genres)
                             val genrePosition = genres.indexOf(it.genre)
-                            genreSpinner.setSelection(if (genrePosition >= 0) genrePosition else 0)
+                            binding.spinnerGenre.setSelection(if (genrePosition >= 0) genrePosition else 0)
 
                             if (it.coverImagePath != null) {
                                 if (selectedImageUri == null) {
-                                    Glide.with(this@AddEditBookFragment).load(it.coverImagePath).into(coverImageView)
+                                    Glide.with(this@AddEditBookFragment).load(it.coverImagePath).into(binding.imageViewAddCover)
                                 }
                             } else {
-                                coverImageView.setImageResource(R.drawable.placeholder_cover_sharp)
+                                binding.imageViewAddCover.setImageResource(R.drawable.placeholder_cover_sharp)
                             }
                         }
                     }
@@ -175,12 +163,12 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             }
         }
 
-        saveButton.setOnClickListener {
-            val title = titleEditText.text.toString().trim()
-            val author = authorEditText.text.toString().trim()
-            val description = descriptionEditText.text.toString().trim()
-            val ratingValue = ratingBar.rating.toInt()
-            val selectedGenre = genreSpinner.selectedItem.toString()
+        binding.buttonSave.setOnClickListener {
+            val title = binding.editTextTitle.text.toString().trim()
+            val author = binding.editTextAuthor.text.toString().trim()
+            val description = binding.editTextDescription.text.toString().trim()
+            val ratingValue = binding.ratingBarEdit.rating.toInt()
+            val selectedGenre = binding.spinnerGenre.selectedItem.toString()
 
             if (!validateInputs(title, author)) { return@setOnClickListener }
 
@@ -204,32 +192,29 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
         }
     }
 
-// --- ФУНКЦІЯ ДЛЯ ПЕРЕВІРКИ ДОЗВОЛІВ ---
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private fun checkAndRequestPermissions() {
         val permissionsToRequest: Array<String> =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                // На Android 13+ запитуємо тільки дозвіл на зображення.
-                // Система сама покаже діалог з опцією "Select photos"
                 arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
             } else {
-                // На старіших версіях - старий дозвіл
                 arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
 
-        // Перевіряємо, чи дозволи вже надано
         val allPermissionsGranted = permissionsToRequest.all {
             ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
         }
 
         if (allPermissionsGranted) {
-            // Якщо дозволи є, одразу запускаємо галерею
             openGalleryLauncher.launch("image/*")
         } else {
-            // Якщо дозволів немає, запускаємо системний діалог для їх запиту
             requestPermissionsLauncher.launch(permissionsToRequest)
         }
     }
-
 
     private fun showDatePickerDialog(dateEditText: TextInputEditText) {
         val calendar = Calendar.getInstance()
@@ -294,7 +279,6 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()
-            // Показуємо користувачеві повідомлення про помилку
             Toast.makeText(requireContext(), "Failed to save cover image. Please try again.", Toast.LENGTH_LONG).show()
             null
         }
@@ -309,8 +293,7 @@ class AddEditBookFragment : Fragment(R.layout.fragment_add_edit_book) {
             Toast.makeText(context, "Author cannot be empty", Toast.LENGTH_SHORT).show()
             return false
         }
-        val genreSpinner = view?.findViewById<Spinner>(R.id.spinner_genre)
-        if (genreSpinner?.selectedItemPosition == 0) {
+        if (binding.spinnerGenre.selectedItemPosition == 0) {
             Toast.makeText(context, R.string.validation_select_genre, Toast.LENGTH_SHORT).show()
             return false
         }

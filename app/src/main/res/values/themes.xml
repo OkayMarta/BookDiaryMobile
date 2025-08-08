@@ -4,7 +4,39 @@
         <!-- Тут можна визначити основні кольори теми -->
         <item name="colorPrimary">@color/background_dark</item>
         <item name="android:statusBarColor">@color/background_dark</item>
+        <!-- Прив'язуємо кастомну тему для всіх діалогів Material, щоб виправити колір кнопок -->
+        <item name="materialAlertDialogTheme">@style/App.AlertDialogTheme</item>
     </style>
 
     <style name="Theme.BookDiaryMobile" parent="Base.Theme.BookDiaryMobile" />
+
+    <!-- Кастомна тема для MaterialAlertDialog, яка перевизначає колір для кнопок -->
+    <style name="App.AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/text_secondary</item>
+    </style>
+
+    <!-- Стиль для кнопок у діалозі -->
+    <style name="App.DialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Кастомна тема для старого DatePickerDialog. Застосовується програмно. -->
+    <style name="App.DatePickerDialogTheme" parent="android:Theme.Material.Dialog.Alert">
+        <!-- Колір фону діалогового вікна -->
+        <item name="android:windowBackground">@color/background_dark</item>
+
+        <!-- Це для кольору заголовка та виділеної дати -->
+        <item name="android:colorAccent">@color/text_secondary</item>
+
+        <!-- Колір основного тексту (цифри календаря) -->
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <!-- Колір другорядного тексту (наприклад, рік у заголовку) -->
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+
+        <!-- Застосовуємо стиль до позитивної кнопки (ОК) -->
+        <item name="android:buttonBarPositiveButtonStyle">@style/App.DialogButton</item>
+        <!-- Застосовуємо стиль до негативної кнопки (Скасувати) -->
+        <item name="android:buttonBarNegativeButtonStyle">@style/App.DialogButton</item>
+    </style>
+
 </resources>

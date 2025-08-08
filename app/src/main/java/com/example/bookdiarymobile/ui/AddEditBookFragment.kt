@@ -298,6 +298,7 @@ class AddEditBookFragment : Fragment() {
 
         val datePickerDialog = DatePickerDialog(
             requireContext(),
+            R.style.App_DatePickerDialogTheme, // Застосовуємо кастомну тему
             { _, year, month, dayOfMonth ->
                 val selectedCalendar = Calendar.getInstance().apply {
                     set(year, month, dayOfMonth)

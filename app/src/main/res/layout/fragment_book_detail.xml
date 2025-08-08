@@ -83,7 +83,7 @@
             android:id="@+id/label_rating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="30dp"
             android:text="@string/label_rating"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="@color/text_secondary"
@@ -180,9 +180,9 @@
             android:id="@+id/button_favorite"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_favorite_crown"
-            android:background="@drawable/circle_button_background"
+            android:background="@drawable/selector_favorite_button_background"
             android:contentDescription="@string/toggle_favorite_status"
+            android:src="@drawable/ic_favorite_crown"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/button_delete" />
 

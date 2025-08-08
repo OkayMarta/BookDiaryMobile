@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight"> <!-- Колір хвилі при натисненні -->
+
+    <!-- Маска у формі кола -->
+    <item android:id="@android:id/mask">
+        <shape android:shape="oval">
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+
+    <!-- Основний фон, який буде видимий у вибраному стані -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/background_dark_highlight" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/text_primary" />
+        </shape>
+    </item>
+
+</ripple>

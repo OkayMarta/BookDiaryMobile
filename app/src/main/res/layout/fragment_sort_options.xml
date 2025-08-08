@@ -9,6 +9,7 @@
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -19,30 +20,99 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <TextView style="?attr/textAppearanceTitleMedium" android:text="Sort by Date" android:layout_marginBottom="8dp"/>
-            <RadioButton android:id="@+id/radio_date_desc" android:text="Date (Newest first)" />
-            <RadioButton android:id="@+id/radio_date_asc" android:text="Date (Oldest first)" />
+            <!-- Заголовок "Sort by Date" -->
+            <TextView
+                style="?attr/textAppearanceTitleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:text="Sort by Date" />
+            <RadioButton
+                android:id="@+id/radio_date_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Date (Newest first)"
+                android:textSize="18sp" />
+            <RadioButton
+                android:id="@+id/radio_date_asc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Date (Oldest first)"
+                android:textSize="18sp" />
 
-            <com.google.android.material.divider.MaterialDivider android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="16dp"/>
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="16dp"/>
 
-            <TextView style="?attr/textAppearanceTitleMedium" android:text="Sort by Title" android:layout_marginBottom="8dp"/>
-            <RadioButton android:id="@+id/radio_title_asc" android:text="Title (A-Z)" />
-            <RadioButton android:id="@+id/radio_title_desc" android:text="Title (Z-A)" />
+            <!-- Заголовок "Sort by Title" -->
+            <TextView
+                style="?attr/textAppearanceTitleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:text="Sort by Title" />
+            <RadioButton
+                android:id="@+id/radio_title_asc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Title (A-Z)"
+                android:textSize="18sp" />
+            <RadioButton
+                android:id="@+id/radio_title_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Title (Z-A)"
+                android:textSize="18sp" />
 
-            <com.google.android.material.divider.MaterialDivider android:id="@+id/divider_rating" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="16dp"/>
+            <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/divider_rating"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="16dp"/>
 
-            <TextView style="?attr/textAppearanceTitleMedium" android:id="@+id/label_rating" android:text="Sort by Rating" android:layout_marginBottom="8dp"/>
-            <RadioButton android:id="@+id/radio_rating_desc" android:text="Rating (Highest first)" />
-            <RadioButton android:id="@+id/radio_rating_asc" android:text="Rating (Lowest first)" />
+            <!-- Заголовок "Sort by Rating" -->
+            <TextView
+                android:id="@+id/label_rating"
+                style="?attr/textAppearanceTitleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center"
+                android:text="Sort by Rating" />
+            <RadioButton
+                android:id="@+id/radio_rating_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Rating (Highest first)"
+                android:textSize="18sp" />
+            <RadioButton
+                android:id="@+id/radio_rating_asc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Rating (Lowest first)"
+                android:textSize="18sp" />
 
         </RadioGroup>
     </ScrollView>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_apply_sort"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:paddingVertical="12dp"
         android:text="Apply"
+        android:textColor="@color/background_dark"
+        android:textSize="16sp"
+        app:backgroundTint="@color/text_secondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

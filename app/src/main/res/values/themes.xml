@@ -6,6 +6,8 @@
         <item name="android:statusBarColor">@color/background_dark</item>
         <!-- Прив'язуємо кастомну тему для всіх діалогів Material, щоб виправити колір кнопок -->
         <item name="materialAlertDialogTheme">@style/App.AlertDialogTheme</item>
+        <!-- Застосовуємо наш кастомний стиль до всіх радіокнопок у додатку -->
+        <item name="radioButtonStyle">@style/App.RadioButton</item>
     </style>
 
     <style name="Theme.BookDiaryMobile" parent="Base.Theme.BookDiaryMobile" />
@@ -18,6 +20,12 @@
     <!-- Стиль для кнопок у діалозі -->
     <style name="App.DialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
         <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Кастомний стиль для радіокнопок -->
+    <style name="App.RadioButton" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="buttonTint">@color/radio_button_tint_selector</item>
     </style>
 
     <!-- Кастомна тема для старого DatePickerDialog. Застосовується програмно. -->

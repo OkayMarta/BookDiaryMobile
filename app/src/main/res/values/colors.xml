@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="background_dark">#18181a</color> <!-- Стандартний темний фон -->
-    <color name="background_dark_highlight">#2A2A2C</color> <!-- Трохи світліший фон для виділення -->
+    <color name="background_dark_highlight">#424244</color> <!-- Трохи світліший фон для виділення -->
     <color name="text_primary">#FCFCFC</color>
     <color name="text_secondary">#F3F3F5</color>
     <color name="icon_tint">#FFFFFF</color>

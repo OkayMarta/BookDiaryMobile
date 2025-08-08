@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Колір, коли радіокнопка вибрана (checked) -->
+    <item android:color="@color/text_primary" android:state_checked="true" />
+
+    <!-- Колір за замовчуванням (не вибрана) -->
+    <item android:color="@color/text_secondary" />
+
+</selector>

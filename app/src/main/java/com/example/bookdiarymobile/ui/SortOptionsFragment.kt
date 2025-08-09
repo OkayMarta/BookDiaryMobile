@@ -16,12 +16,23 @@ import com.example.bookdiarymobile.data.SortOrder
 import com.example.bookdiarymobile.databinding.FragmentSortOptionsBinding
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Фрагмент, що надає користувачеві інтерфейс для вибору параметрів сортування списку книг.
+ *
+ * Цей екран отримує поточний порядок сортування (`currentSortOrder`) та тип вихідного екрану
+ * (`sourceScreen`) через навігаційні аргументи. Він динамічно адаптує доступні
+ * опції сортування (наприклад, приховує сортування за рейтингом для списку "Хочу прочитати").
+ *
+ * Після вибору та підтвердження, він повертає новий [SortOrder] до попереднього
+ * фрагмента за допомогою `setFragmentResult`.
+ */
 @AndroidEntryPoint
 class SortOptionsFragment : Fragment() {
 
     private var _binding: FragmentSortOptionsBinding? = null
     private val binding get() = _binding!!
 
+    /** Навігаційні аргументи, що містять `currentSortOrder` та `sourceScreen`. */
     private val args: SortOptionsFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -32,10 +43,15 @@ class SortOptionsFragment : Fragment() {
         return binding.root
     }
 
+    /**
+     * Ініціалізує UI, встановлює видимість опцій, попередньо вибирає
+     * поточний порядок сортування та налаштовує обробник кнопки "Застосувати".
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val isForToReadList = args.sourceScreen == "TO_READ"
+
         setupVisibility(isForToReadList)
         preselectCurrentSortOrder(binding.radioGroupSort, args.currentSortOrder)
 
@@ -43,19 +59,33 @@ class SortOptionsFragment : Fragment() {
             val selectedOptionId = binding.radioGroupSort.checkedRadioButtonId
             val selectedSortOrder = mapIdToSortOrder(selectedOptionId, isForToReadList)
 
+            // Повертаємо результат до попереднього фрагмента
             setFragmentResult("SORT_REQUEST", bundleOf("SORT_ORDER" to selectedSortOrder))
             findNavController().popBackStack()
         }
     }
 
+    /**
+     * Налаштовує видимість опцій сортування залежно від того,
+     * з якого екрану був здійснений перехід. Сортування за рейтингом
+     * не має сенсу для списку "Хочу прочитати".
+     *
+     * @param isForToReadList `true`, якщо вихідний екран - "Хочу прочитати".
+     */
     private fun setupVisibility(isForToReadList: Boolean) {
-        // Використовуємо binding для доступу до елементів
         binding.labelRating.isVisible = !isForToReadList
         binding.radioRatingAsc.isVisible = !isForToReadList
         binding.radioRatingDesc.isVisible = !isForToReadList
         binding.dividerRating.isVisible = !isForToReadList
     }
 
+    /**
+     * Попередньо встановлює активний RadioButton на основі поточного
+     * порядку сортування, отриманого з аргументів.
+     *
+     * @param radioGroup Група кнопок, в якій потрібно зробити вибір.
+     * @param currentOrder Поточний [SortOrder], який потрібно відзначити.
+     */
     private fun preselectCurrentSortOrder(radioGroup: RadioGroup, currentOrder: SortOrder) {
         val buttonId = when (currentOrder) {
             SortOrder.DATE_READ_DESC, SortOrder.DATE_ADDED_DESC -> R.id.radio_date_desc
@@ -68,6 +98,15 @@ class SortOptionsFragment : Fragment() {
         radioGroup.check(buttonId)
     }
 
+    /**
+     * Перетворює ідентифікатор вибраного RadioButton на відповідне значення [SortOrder].
+     * Враховує контекст (`isForToReadList`), щоб правильно інтерпретувати
+     * сортування за датою (або дата додавання, або дата прочитання).
+     *
+     * @param selectedId Ідентифікатор вибраної кнопки.
+     * @param isForToReadList `true`, якщо сортування застосовується до списку "Хочу прочитати".
+     * @return Відповідне значення [SortOrder].
+     */
     private fun mapIdToSortOrder(selectedId: Int, isForToReadList: Boolean): SortOrder {
         return when (selectedId) {
             R.id.radio_title_asc -> SortOrder.TITLE_ASC
@@ -76,12 +115,13 @@ class SortOptionsFragment : Fragment() {
             R.id.radio_rating_desc -> SortOrder.RATING_DESC
             R.id.radio_date_asc -> if (isForToReadList) SortOrder.DATE_ADDED_ASC else SortOrder.DATE_READ_ASC
             R.id.radio_date_desc -> if (isForToReadList) SortOrder.DATE_ADDED_DESC else SortOrder.DATE_READ_DESC
-            else -> if (isForToReadList) SortOrder.DATE_ADDED_DESC else SortOrder.DATE_READ_DESC // Значення за замовчуванням
+            // Значення за замовчуванням на випадок, якщо нічого не вибрано
+            else -> if (isForToReadList) SortOrder.DATE_ADDED_DESC else SortOrder.DATE_READ_DESC
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null // Очищуємо binding
+        _binding = null
     }
 }

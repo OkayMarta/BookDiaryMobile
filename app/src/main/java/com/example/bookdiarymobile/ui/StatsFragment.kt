@@ -17,21 +17,44 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+/**
+ * Фрагмент, що відповідає за відображення статистики прочитаних книг.
+ *
+ * Надає користувачеві можливість переглядати кількість прочитаних книг за:
+ * - Вибраний місяць та рік.
+ * - Вибраний рік.
+ * - За весь час ведення щоденника.
+ *
+ * Користувач може змінити період для перегляду статистики, викликавши
+ * діалогове вікно з вибором місяця та року. Взаємодіє з [StatsViewModel]
+ * для отримання даних та оновлення періоду.
+ */
 @AndroidEntryPoint
 class StatsFragment : Fragment() {
 
     private var _binding: FragmentStatsBinding? = null
+    /** Захищене посилання на ViewBinding, що гарантує non-null доступ після `onViewCreated`. */
     private val binding get() = _binding!!
 
+    /** ViewModel, що керує логікою та станом екрану статистики. */
     private val viewModel: StatsViewModel by viewModels()
 
+    /** Масив рядків з назвами місяців, завантажений з ресурсів. */
     private lateinit var months: Array<String>
 
+    /**
+     * Ініціалізує не-UI компоненти, такі як масив назв місяців,
+     * які потрібні для роботи фрагмента.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         months = resources.getStringArray(R.array.months)
     }
 
+    /**
+     * Створює та повертає ієрархію View для фрагмента, інфлейтячи
+     * макет за допомогою ViewBinding.
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -40,6 +63,10 @@ class StatsFragment : Fragment() {
         return binding.root
     }
 
+    /**
+     * Налаштовує слухачі та запускає спостереження за станом ViewModel
+     * після того, як View було створено.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -48,11 +75,14 @@ class StatsFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
+            // repeatOnLifecycle гарантує, що збір даних відбувається лише коли UI видимий (STARTED).
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Підписуємося на оновлення стану статистики з ViewModel.
                 viewModel.stats.collect { state ->
                     if (state.isLoading) return@collect
 
                     val period = state.selectedPeriod
+                    // Оновлюємо UI останніми даними зі стану.
                     binding.textSelectedPeriod.text = "${months[period.month]} ${period.year}"
                     binding.labelStatsMonth.text = getString(R.string.stats_in_month_year, months[period.month], period.year)
                     binding.labelStatsYear.text = getString(R.string.stats_in_year, period.year)
@@ -64,18 +94,25 @@ class StatsFragment : Fragment() {
         }
     }
 
+    /**
+     * Створює та відображає кастомне діалогове вікно для вибору місяця та року.
+     *
+     * Використовує макет `dialog_month_year_picker.xml` та налаштовує
+     * `NumberPicker` для місяців та років. Поточний вибраний період
+     * встановлюється як початкове значення. При підтвердженні вибору,
+     * викликає метод у ViewModel для оновлення статистики.
+     */
     private fun showMonthYearPickerDialog() {
-        // Використовуємо View Binding для макету діалогового вікна
         val dialogBinding = DialogMonthYearPickerBinding.inflate(LayoutInflater.from(requireContext()))
         val currentPeriod = viewModel.stats.value.selectedPeriod
 
-        // Налаштовуємо вибір місяця
+        // Налаштування NumberPicker для вибору місяця
         dialogBinding.pickerMonth.minValue = 0
         dialogBinding.pickerMonth.maxValue = months.size - 1
         dialogBinding.pickerMonth.displayedValues = months
         dialogBinding.pickerMonth.value = currentPeriod.month
 
-        // Налаштовуємо вибір року
+        // Налаштування NumberPicker для вибору року
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         dialogBinding.pickerYear.minValue = 2000
         dialogBinding.pickerYear.maxValue = currentYear
@@ -83,7 +120,7 @@ class StatsFragment : Fragment() {
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.dialog_select_period_title))
-            .setView(dialogBinding.root) // Передаємо кореневий елемент binding
+            .setView(dialogBinding.root)
             .setPositiveButton(getString(R.string.dialog_ok)) { _, _ ->
                 viewModel.updateSelectedPeriod(dialogBinding.pickerYear.value, dialogBinding.pickerMonth.value)
             }
@@ -91,8 +128,12 @@ class StatsFragment : Fragment() {
             .show()
     }
 
+    /**
+     * Очищує посилання на ViewBinding, коли View фрагмента знищується,
+     * для запобігання витокам пам'яті.
+     */
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null // Очищуємо binding
+        _binding = null
     }
 }

@@ -20,60 +20,79 @@ import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 /**
- * Перелічення, що представляють можливі стани процесу експорту.
+ * Перелічення, що представляє можливі стани процесу експорту даних.
+ * Використовується для інформування UI про хід операції.
  */
 enum class ExportStatus { IDLE, IN_PROGRESS, SUCCESS, FAILED }
 
 /**
- * Перелічення, що представляють можливі стани процесу імпорту.
+ * Перелічення, що представляє можливі стани процесу імпорту даних.
+ * Використовується для інформування UI про хід операції.
  */
 enum class ImportStatus { IDLE, IN_PROGRESS, SUCCESS, FAILED }
 
 /**
- * Тег для фільтрації логів, пов'язаних з резервним копіюванням.
+ * Тег для фільтрації логів, пов'язаних з процесами резервного копіювання.
  */
 private const val TAG = "BackupDebug"
 
 /**
- * ViewModel для екрану резервного копіювання.
- * Відповідає за логіку експорту та імпорту даних.
+ * ViewModel для екрану резервного копіювання ([BackupFragment]).
+ *
+ * Відповідає за всю бізнес-логіку експорту та імпорту даних, включаючи:
+ * - Збір файлів (база даних, обкладинки) для експорту.
+ * - Архівацію файлів у ZIP-архів.
+ * - Видалення поточних даних перед імпортом.
+ * - Розархівацію даних з ZIP-архіву у відповідні папки додатку.
+ * - Управління станом операцій через [StateFlow].
+ *
+ * @param repository Репозиторій для доступу до даних, зокрема до списку книг для пошуку обкладинок.
  */
 @HiltViewModel
 class BackupViewModel @Inject constructor(private val repository: BookRepository) : ViewModel() {
 
     /**
-     * StateFlow для відстеження статусу експорту. UI підписується на нього,
-     * щоб показувати відповідні повідомлення користувачу.
+     * Внутрішній [MutableStateFlow] для відстеження статусу експорту.
      */
     private val _exportStatus = MutableStateFlow(ExportStatus.IDLE)
+    /**
+     * Публічний, незмінний [StateFlow], на який UI підписується для отримання
+     * актуального стану процесу експорту.
+     */
     val exportStatus = _exportStatus.asStateFlow()
 
     /**
-     * StateFlow для відстеження статусу імпорту.
+     * Внутрішній [MutableStateFlow] для відстеження статусу імпорту.
      */
     private val _importStatus = MutableStateFlow(ImportStatus.IDLE)
+    /**
+     * Публічний, незмінний [StateFlow] для відстеження статусу імпорту.
+     */
     val importStatus = _importStatus.asStateFlow()
 
     /**
-     * Виконує експорт даних додатку в ZIP-архів.
+     * Виконує експорт даних додатку (бази даних та обкладинок) в один ZIP-архів.
+     * Операція виконується у фоновому потоці (`Dispatchers.IO`).
+     *
+     * @param context Контекст додатку для доступу до файлової системи.
+     * @param destinationUri URI файлу, вибраного користувачем для збереження архіву.
      */
     fun exportData(context: Context, destinationUri: Uri) {
-        // Запускаємо операцію у фоновому потоці, щоб не блокувати UI.
         viewModelScope.launch(Dispatchers.IO) {
             _exportStatus.value = ExportStatus.IN_PROGRESS
             var tempDir: File? = null
             try {
                 Log.d(TAG, "--- STARTING EXPORT ---")
-                // Створюємо тимчасову папку для збору файлів перед архівацією.
+                // Створюємо тимчасову папку для збору всіх файлів перед їх архівацією.
                 tempDir = File(context.cacheDir, "backup_temp").apply { mkdirs() }
                 Log.d(TAG, "Temp dir created at: ${tempDir.absolutePath}")
 
-                // Створюємо структуру папок, що точно відповідає структурі даних додатку.
+                // Відтворюємо структуру папок додатку (`databases`, `files/covers`) у тимчасовій директорії.
                 val tempDbDir = File(tempDir, "databases").apply { mkdirs() }
                 val tempFilesDir = File(tempDir, "files").apply { mkdirs() }
                 val tempCoversDir = File(tempFilesDir, "covers").apply { mkdirs() }
 
-                // Копіюємо файл бази даних у тимчасову папку.
+                // Копіюємо файл бази даних Room.
                 val dbFile = context.getDatabasePath("books_database")
                 if (dbFile.exists()) {
                     dbFile.copyTo(File(tempDbDir, dbFile.name), true)
@@ -82,7 +101,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
                     Log.w(TAG, "DB file not found at ${dbFile.absolutePath}")
                 }
 
-                // Отримуємо список усіх книг та копіюємо їхні обкладинки.
+                // Отримуємо список усіх книг, щоб знайти та скопіювати їхні обкладинки.
                 val books = repository.getAllBooksForBackup()
                 Log.d(TAG, "Found ${books.size} books to check for covers.")
                 books.forEach { book ->
@@ -95,7 +114,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
                     }
                 }
 
-                // Архівуємо вміст тимчасової папки у вибраний користувачем файл.
+                // Архівуємо вміст тимчасової папки у ZIP-файл за вказаним URI.
                 context.contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
                     ZipOutputStream(outputStream).use { zos ->
                         zipSubFolder(zos, tempDir, tempDir.path.length)
@@ -107,7 +126,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
                 Log.e(TAG, "--- EXPORT FAILED ---", e)
                 _exportStatus.value = ExportStatus.FAILED
             } finally {
-                // Видаляємо тимчасову папку після завершення операції.
+                // Обов'язково видаляємо тимчасову папку після завершення операції.
                 tempDir?.deleteRecursively()
             }
         }
@@ -115,13 +134,17 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
 
     /**
      * Виконує імпорт даних із ZIP-архіву, повністю замінюючи поточні дані.
+     * Операція є деструктивною і вимагає перезапуску додатку.
+     *
+     * @param context Контекст додатку для доступу до файлової системи.
+     * @param sourceUri URI ZIP-архіву, вибраного користувачем для імпорту.
      */
     fun importData(context: Context, sourceUri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             _importStatus.value = ImportStatus.IN_PROGRESS
             Log.d(TAG, "--- STARTING IMPORT ---")
 
-            // Отримуємо кореневу папку даних додатку (/data/data/com.example.bookdiarymobile).
+            // Отримуємо кореневу папку даних додатку (напр., /data/data/com.example.bookdiarymobile).
             val appDataDir = context.filesDir.parentFile
             if (appDataDir == null) {
                 Log.e(TAG, "App data directory is null, cannot proceed.")
@@ -135,7 +158,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
             val coversDir = File(context.filesDir, "covers")
 
             try {
-                // Видаляємо старі папки з базою даних та обкладинками.
+                // ПОВНЕ ВИДАЛЕННЯ ПОТОЧНИХ ДАНИХ.
                 if (dbDir != null && dbDir.exists()) {
                     val deleted = dbDir.deleteRecursively()
                     Log.d(TAG, "Old DB directory deleted: $deleted at ${dbDir.absolutePath}")
@@ -145,6 +168,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
                     Log.d(TAG, "Old covers directory deleted: $deleted at ${coversDir.absolutePath}")
                 }
 
+                // Розархівація файлів з архіву безпосередньо у папку даних додатку.
                 Log.d(TAG, "Unzipping archive...")
                 context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
                     ZipInputStream(inputStream).use { zis ->
@@ -153,6 +177,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
                             val newFile = File(appDataDir, zipEntry.name)
                             Log.d(TAG, "Processing zip entry: ${zipEntry.name} -> ${newFile.absolutePath}")
 
+                            // Захист від уразливості "Zip Slip", щоб уникнути запису файлів за межами папки додатку.
                             if (!newFile.canonicalPath.startsWith(appDataDir.canonicalPath)) {
                                 throw SecurityException("Zip Slip vulnerability detected!")
                             }
@@ -172,6 +197,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
                 }
                 Log.d(TAG, "Unzipping complete.")
 
+                // Перевірка, чи файл бази даних успішно відновлено.
                 val restoredDbFile = File(appDataDir, "databases/books_database")
                 if (restoredDbFile.exists()) {
                     Log.d(TAG, "SUCCESS! DB file exists at ${restoredDbFile.absolutePath} after unzip. Size: ${restoredDbFile.length()} bytes.")
@@ -190,17 +216,23 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
     }
 
     /**
-     * Скидає статус експорту до початкового стану.
+     * Скидає статус експорту до початкового стану [ExportStatus.IDLE].
+     * Зазвичай викликається з UI після показу діалогу з результатом.
      */
     fun resetExportStatus() { _exportStatus.value = ExportStatus.IDLE }
 
     /**
-     * Скидає статус імпорту до початкового стану.
+     * Скидає статус імпорту до початкового стану [ImportStatus.IDLE].
+     * Зазвичай викликається з UI перед перезапуском додатку.
      */
     fun resetImportStatus() { _importStatus.value = ImportStatus.IDLE }
 
     /**
      * Рекурсивна допоміжна функція для архівації вмісту папки.
+     *
+     * @param zos Вихідний потік ZIP-архіву.
+     * @param folder Папка, вміст якої потрібно заархівувати.
+     * @param basePathLength Довжина базового шляху для створення відносних шляхів всередині архіву.
      */
     private fun zipSubFolder(zos: ZipOutputStream, folder: File, basePathLength: Int) {
         folder.listFiles()?.forEach { file ->
@@ -208,7 +240,7 @@ class BackupViewModel @Inject constructor(private val repository: BookRepository
                 zipSubFolder(zos, file, basePathLength)
             } else {
                 FileInputStream(file).use { fis ->
-                    // Формуємо відносний шлях файлу всередині архіву.
+                    // Створюємо відносний шлях, щоб зберегти структуру папок в архіві.
                     val relativePath = file.path.substring(basePathLength + 1).replace('\\', '/')
                     Log.d(TAG, "Zipping: $relativePath")
                     val zipEntry = ZipEntry(relativePath)

@@ -1,5 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Змінюємо батьківську тему на темну -->
+
+    <!-- 1. Тема для Splash Screen -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Фон Splash Screen -->
+        <item name="windowSplashScreenBackground">@color/background_dark</item>
+        <!-- Іконка, яка буде на Splash Screen (має бути та сама, що й лого) -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <!-- Тема, на яку переключитися після Splash Screen -->
+        <item name="postSplashScreenTheme">@style/Theme.BookDiaryMobile</item>
+    </style>
+
+    <!-- 2. Ваша основна тема -->
     <style name="Base.Theme.BookDiaryMobile" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Тут можна визначити основні кольори теми -->
         <item name="colorPrimary">@color/background_dark</item>
@@ -32,15 +43,12 @@
     <style name="App.DatePickerDialogTheme" parent="android:Theme.Material.Dialog.Alert">
         <!-- Колір фону діалогового вікна -->
         <item name="android:windowBackground">@color/background_dark</item>
-
         <!-- Це для кольору заголовка та виділеної дати -->
         <item name="android:colorAccent">@color/text_secondary</item>
-
         <!-- Колір основного тексту (цифри календаря) -->
         <item name="android:textColorPrimary">@color/text_primary</item>
         <!-- Колір другорядного тексту (наприклад, рік у заголовку) -->
         <item name="android:textColorSecondary">@color/text_secondary</item>
-
         <!-- Застосовуємо стиль до позитивної кнопки (ОК) -->
         <item name="android:buttonBarPositiveButtonStyle">@style/App.DialogButton</item>
         <!-- Застосовуємо стиль до негативної кнопки (Скасувати) -->
